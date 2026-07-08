@@ -2,16 +2,7 @@
    Host pages can expose actions via window.MagicScriptActions = { actionName: fn }. */
 (function () {
   const STORAGE_KEY = "magicscript-history";
-  const API_KEY_STORAGE = "magicscript-api-key";
-  const MODEL = "claude-opus-4-8";
-  const GEMINI_MODEL = "gemini-flash-latest";
-  const SYSTEM_PROMPT = `You are MagicScript, the AI assistant embedded on the MagicScript landing page (magicscript.ai).
-
-About the product you live on: MagicScript is a drop-in script — one <script> tag — that adds an AI chatbot to the bottom-right corner of any website. Once installed it integrates with the host site/web app and can: answer questions about the site, display the user's data in that site (e.g. "show my sales chart for March 3rd" on a dashboard site opens a generated page with that chart), and execute changes in the web app. Host sites expose capabilities by registering functions on window.MagicScriptActions. It keeps chat history per site (localStorage), is installed in one line, and this very chat is a live demo of it.
-
-This demo site registered one action for you — changing the site's language. Supported codes: en, es, fr, de, pt, it, nl, ru, zh, ja, ko, ar, hi, tr, pl. To change the language, include the exact token [[setLanguage:CODE]] anywhere in your reply (it will be executed and hidden from the user). Example: user says "ponlo en español" → reply "¡Listo! El sitio ahora está en español. [[setLanguage:es]]". Only use it when the user asks for a language change.
-
-Style: reply in the user's language, be friendly and concise (1-3 short sentences), plain text only — no markdown. If asked about pricing or signup, say this is a demo site.`;
+  const CHAT_ENDPOINT = "/api/chat";
 
   const css = `
     #ms-btn{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:9999px;
@@ -68,7 +59,6 @@ Style: reply in the user's language, be friendly and concise (1-3 short sentence
     <div id="ms-head">
       <i class="fa-solid fa-wand-magic-sparkles"></i>
       <span class="ms-title">MagicScript</span>
-      <button id="ms-apikey" title="Set Anthropic API key"><i class="fa-solid fa-key"></i></button>
       <button id="ms-clear" title="Clear history"><i class="fa-solid fa-trash"></i></button>
       <button id="ms-close" title="Close"><i class="fa-solid fa-xmark"></i></button>
     </div>
@@ -124,51 +114,8 @@ Style: reply in the user's language, be friendly and concise (1-3 short sentence
     return typing;
   }
 
-  async function askClaude(apiKey) {
-    const typing = showTyping();
-    try {
-      // last 20 turns; the API requires the first message to be from the user
-      const msgs = history.slice(-20).map(m => ({
-        role: m.role === "user" ? "user" : "assistant",
-        content: m.text,
-      }));
-      while (msgs.length && msgs[0].role !== "user") msgs.shift();
-
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true",
-        },
-        body: JSON.stringify({
-          model: MODEL,
-          max_tokens: 1024,
-          system: SYSTEM_PROMPT,
-          messages: msgs,
-        }),
-      });
-      const data = await res.json();
-      typing.remove();
-
-      if (!res.ok) {
-        push("bot", "⚠️ " + (data.error && data.error.message ? data.error.message : "API error " + res.status));
-        return;
-      }
-      if (data.stop_reason === "refusal") {
-        push("bot", "Sorry, I can't help with that one.");
-        return;
-      }
-      const text = data.content.filter(b => b.type === "text").map(b => b.text).join("");
-      push("bot", runActions(text) || "Done! ✨");
-    } catch (err) {
-      typing.remove();
-      push("bot", "⚠️ Couldn't reach Claude. Check your connection and API key (🔑 in the header).");
-    }
-  }
-
-  async function askGemini(apiKey) {
+  // The AI key lives server-side (Netlify function) — the browser never sees it.
+  async function askServer() {
     const typing = showTyping();
     try {
       const contents = history.slice(-20).map(m => ({
@@ -177,43 +124,23 @@ Style: reply in the user's language, be friendly and concise (1-3 short sentence
       }));
       while (contents.length && contents[0].role !== "user") contents.shift();
 
-      const res = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/" + GEMINI_MODEL + ":generateContent",
-        {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-            "x-goog-api-key": apiKey,
-          },
-          body: JSON.stringify({
-            system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-            contents,
-            generationConfig: { maxOutputTokens: 1024 },
-          }),
-        }
-      );
+      const res = await fetch(CHAT_ENDPOINT, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ contents }),
+      });
       const data = await res.json();
       typing.remove();
 
       if (!res.ok) {
-        push("bot", "⚠️ " + (data.error && data.error.message ? data.error.message : "API error " + res.status));
-        return;
+        // server/function unavailable (e.g. running the file locally without Netlify) — degrade gracefully
+        return answer(history[history.length - 1].text);
       }
-      const parts = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
-      const text = parts.map(p => p.text || "").join("");
-      push("bot", runActions(text) || "Sorry, I couldn't answer that one.");
+      push("bot", runActions(data.text) || "Sorry, I couldn't answer that one.");
     } catch (err) {
       typing.remove();
-      push("bot", "⚠️ Couldn't reach Gemini. Check your connection and API key (🔑 in the header).");
+      answer(history[history.length - 1].text);
     }
-  }
-
-  // Anthropic keys start with sk-ant-; Google AI Studio keys with AIza or AQ.
-  function isGeminiKey(key) { return /^(AIza|AQ\.)/.test(key); }
-
-  function askAI(apiKey) {
-    if (isGeminiKey(apiKey)) askGemini(apiKey);
-    else askClaude(apiKey);
   }
 
   function answer(q) {
@@ -276,7 +203,7 @@ Style: reply in the user's language, be friendly and concise (1-3 short sentence
     if (/\b(hi|hello|hola|hey|bonjour|hallo|ciao|olá|привет|你好|こんにちは|안녕|مرحبا|merhaba|cześć)\b/.test(t)) {
       return reply("Hey! 👋 Ask me what I can do, or tell me to switch this site to another language.");
     }
-    reply('Not sure about that one (demo mode). Try "what can you do?", "switch to French" — or add an API key (🔑) for real AI answers.');
+    reply('Not sure about that one. Try "what can you do?" or "switch to French".');
   }
 
   function openPanel() {
@@ -284,7 +211,7 @@ Style: reply in the user's language, be friendly and concise (1-3 short sentence
     panel.classList.add("open");
     if (!log.hasChildNodes()) {
       history.forEach(render);
-      if (!history.length) push("bot", "Hi! I'm MagicScript — the assistant living on this site. Ask me what I can do. ✨\n\nTip: click the 🔑 icon and paste an API key to power me with real AI — Gemini keys are free at aistudio.google.com.");
+      if (!history.length) push("bot", "Hi! I'm MagicScript — the assistant living on this site. Ask me what I can do. ✨");
     }
     // cascade: replay each message's entrance at a staggered delay
     Array.from(log.children).forEach((el, i) => {
@@ -314,33 +241,12 @@ Style: reply in the user's language, be friendly and concise (1-3 short sentence
     push("bot", "History cleared. Fresh start! ✨");
   });
 
-  panel.querySelector("#ms-apikey").addEventListener("click", () => {
-    const current = localStorage.getItem(API_KEY_STORAGE);
-    const key = prompt("Paste your API key — Anthropic (sk-ant-...) or Google AI Studio (AIza..., free at aistudio.google.com). Leave empty to remove it.", current || "");
-    if (key === null) return;
-    if (key.trim()) {
-      localStorage.setItem(API_KEY_STORAGE, key.trim());
-      push("bot", "Key saved — I'm now powered by " + (isGeminiKey(key.trim()) ? "Gemini" : "Claude") + ". Ask me anything! ✨");
-    } else {
-      localStorage.removeItem(API_KEY_STORAGE);
-      push("bot", "Key removed. Back to demo mode.");
-    }
-  });
-
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const q = input.value.trim();
     if (!q) return;
     input.value = "";
-    if (/^(sk-ant-|AIza|AQ\.)/.test(q)) {
-      localStorage.setItem(API_KEY_STORAGE, q);
-      push("user", "•••••• (API key)");
-      reply("Key saved — I'm now powered by " + (isGeminiKey(q) ? "Gemini" : "Claude") + ". Ask me anything! ✨");
-      return;
-    }
     push("user", q);
-    const apiKey = localStorage.getItem(API_KEY_STORAGE);
-    if (apiKey) askAI(apiKey);
-    else answer(q);
+    askServer();
   });
 })();
