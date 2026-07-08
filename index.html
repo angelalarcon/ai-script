@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MagicScript — AI chat for any site</title>
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+
+  <!-- Jumbotron -->
+  <section class="max-w-4xl mx-auto px-6 pt-28 pb-20 text-center">
+    <div class="inline-flex items-center gap-2 bg-indigo-500/10 text-indigo-300 text-sm px-4 py-1.5 rounded-full mb-8">
+      <i class="fa-solid fa-wand-magic-sparkles"></i>
+      <span data-i18n="badge">One script. Full AI.</span>
+    </div>
+    <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight" data-i18n="title">
+      Your site, now with a brain.
+    </h1>
+    <p class="mt-6 text-xl text-slate-400" data-i18n="subtitle">
+      Paste one line. Get an AI assistant that knows your site, your data, and can act on both.
+    </p>
+    <div class="mt-10 inline-flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-xl px-5 py-3 font-mono text-sm text-emerald-400">
+      <i class="fa-solid fa-code text-slate-500"></i>
+      &lt;script src="https://magicscript.ai/widget.js"&gt;&lt;/script&gt;
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="max-w-5xl mx-auto px-6 pb-24 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-8">
+      <i class="fa-solid fa-comments text-3xl text-indigo-400"></i>
+      <h3 class="mt-4 font-semibold text-lg" data-i18n="f1t">Answers</h3>
+      <p class="mt-2 text-sm text-slate-400" data-i18n="f1d">Knows your site. Ask anything.</p>
+    </div>
+    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-8">
+      <i class="fa-solid fa-chart-line text-3xl text-indigo-400"></i>
+      <h3 class="mt-4 font-semibold text-lg" data-i18n="f2t">Data</h3>
+      <p class="mt-2 text-sm text-slate-400" data-i18n="f2d">"Show March sales" → done.</p>
+    </div>
+    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-8">
+      <i class="fa-solid fa-bolt text-3xl text-indigo-400"></i>
+      <h3 class="mt-4 font-semibold text-lg" data-i18n="f3t">Actions</h3>
+      <p class="mt-2 text-sm text-slate-400" data-i18n="f3d">Navigates, generates pages, changes settings.</p>
+    </div>
+  </section>
+
+  <!-- Try it -->
+  <section class="max-w-3xl mx-auto px-6 pb-32 text-center">
+    <p class="text-slate-400" data-i18n="try">
+      It's live on this page. Ask it to switch this site to Spanish.
+    </p>
+    <i class="fa-solid fa-arrow-turn-down mt-4 text-indigo-400 text-2xl rotate-[-90deg] inline-block"></i>
+  </section>
+
+  <footer class="text-center text-xs text-slate-600 pb-8">
+    <i class="fa-solid fa-wand-magic-sparkles"></i> MagicScript
+  </footer>
+
+  <script>
+    // Site translations + the action MagicScript can call
+    const i18n = {
+      en: {
+        badge: "One script. Full AI.",
+        title: "Your site, now with a brain.",
+        subtitle: "Paste one line. Get an AI assistant that knows your site, your data, and can act on both.",
+        f1t: "Answers", f1d: "Knows your site. Ask anything.",
+        f2t: "Data", f2d: '"Show March sales" → done.',
+        f3t: "Actions", f3d: "Navigates, generates pages, changes settings.",
+        try: "It's live on this page. Ask it to switch this site to Spanish."
+      },
+      es: {
+        badge: "Un script. IA completa.",
+        title: "Tu sitio, ahora con cerebro.",
+        subtitle: "Pega una línea. Obtén un asistente de IA que conoce tu sitio, tus datos, y puede actuar sobre ambos.",
+        f1t: "Respuestas", f1d: "Conoce tu sitio. Pregunta lo que sea.",
+        f2t: "Datos", f2d: '"Muestra las ventas de marzo" → listo.',
+        f3t: "Acciones", f3d: "Navega, genera páginas, cambia ajustes.",
+        try: "Está activo en esta página. Pídele que cambie este sitio al inglés."
+      },
+      fr: {
+        badge: "Un script. IA complète.",
+        title: "Votre site, avec un cerveau.",
+        subtitle: "Collez une ligne. Obtenez un assistant IA qui connaît votre site, vos données, et peut agir sur les deux.",
+        f1t: "Réponses", f1d: "Connaît votre site. Demandez ce que vous voulez.",
+        f2t: "Données", f2d: "« Montre les ventes de mars » → fait.",
+        f3t: "Actions", f3d: "Navigue, génère des pages, modifie les paramètres.",
+        try: "Il est actif sur cette page. Demandez-lui de passer le site en anglais."
+      },
+      de: {
+        badge: "Ein Skript. Volle KI.",
+        title: "Deine Website, jetzt mit Gehirn.",
+        subtitle: "Füge eine Zeile ein. Erhalte einen KI-Assistenten, der deine Website und deine Daten kennt — und handeln kann.",
+        f1t: "Antworten", f1d: "Kennt deine Website. Frag alles.",
+        f2t: "Daten", f2d: "„Zeig die März-Verkäufe“ → erledigt.",
+        f3t: "Aktionen", f3d: "Navigiert, erstellt Seiten, ändert Einstellungen.",
+        try: "Es läuft live auf dieser Seite. Bitte es, die Seite auf Englisch umzustellen."
+      },
+      pt: {
+        badge: "Um script. IA completa.",
+        title: "Seu site, agora com cérebro.",
+        subtitle: "Cole uma linha. Tenha um assistente de IA que conhece seu site, seus dados, e pode agir sobre ambos.",
+        f1t: "Respostas", f1d: "Conhece seu site. Pergunte qualquer coisa.",
+        f2t: "Dados", f2d: '"Mostre as vendas de março" → pronto.',
+        f3t: "Ações", f3d: "Navega, gera páginas, altera configurações.",
+        try: "Está ativo nesta página. Peça para mudar o site para inglês."
+      },
+      it: {
+        badge: "Uno script. IA completa.",
+        title: "Il tuo sito, ora con un cervello.",
+        subtitle: "Incolla una riga. Ottieni un assistente IA che conosce il tuo sito, i tuoi dati, e può agire su entrambi.",
+        f1t: "Risposte", f1d: "Conosce il tuo sito. Chiedi qualsiasi cosa.",
+        f2t: "Dati", f2d: '"Mostra le vendite di marzo" → fatto.',
+        f3t: "Azioni", f3d: "Naviga, genera pagine, cambia impostazioni.",
+        try: "È attivo su questa pagina. Chiedigli di passare il sito all'inglese."
+      },
+      nl: {
+        badge: "Eén script. Volledige AI.",
+        title: "Jouw site, nu met een brein.",
+        subtitle: "Plak één regel. Krijg een AI-assistent die je site en je data kent — en kan handelen.",
+        f1t: "Antwoorden", f1d: "Kent je site. Vraag alles.",
+        f2t: "Data", f2d: '"Toon de verkoop van maart" → klaar.',
+        f3t: "Acties", f3d: "Navigeert, genereert pagina's, wijzigt instellingen.",
+        try: "Hij is live op deze pagina. Vraag hem de site naar het Engels te zetten."
+      },
+      ru: {
+        badge: "Один скрипт. Полный ИИ.",
+        title: "Ваш сайт — теперь с мозгом.",
+        subtitle: "Вставьте одну строку. Получите ИИ-ассистента, который знает ваш сайт и данные — и может действовать.",
+        f1t: "Ответы", f1d: "Знает ваш сайт. Спрашивайте что угодно.",
+        f2t: "Данные", f2d: "«Покажи продажи за март» → готово.",
+        f3t: "Действия", f3d: "Навигация, генерация страниц, смена настроек.",
+        try: "Он работает на этой странице. Попросите переключить сайт на английский."
+      },
+      zh: {
+        badge: "一个脚本，完整的 AI。",
+        title: "你的网站，现在有了大脑。",
+        subtitle: "粘贴一行代码，即可获得一个了解你的网站和数据、并能采取行动的 AI 助手。",
+        f1t: "回答", f1d: "了解你的网站，尽管提问。",
+        f2t: "数据", f2d: "「显示三月销售数据」→ 完成。",
+        f3t: "操作", f3d: "导航、生成页面、更改设置。",
+        try: "它就在这个页面上。让它把网站切换成英文试试。"
+      },
+      ja: {
+        badge: "スクリプト1行で、フルAI。",
+        title: "あなたのサイトに、頭脳を。",
+        subtitle: "1行貼るだけ。サイトとデータを理解し、行動できるAIアシスタントが手に入ります。",
+        f1t: "回答", f1d: "サイトを理解。何でも聞いてください。",
+        f2t: "データ", f2d: "「3月の売上を表示」→ 完了。",
+        f3t: "アクション", f3d: "ナビゲート、ページ生成、設定変更。",
+        try: "このページで動いています。サイトを英語に切り替えるよう頼んでみてください。"
+      },
+      ko: {
+        badge: "스크립트 하나로 완전한 AI.",
+        title: "당신의 사이트에 두뇌를.",
+        subtitle: "한 줄만 붙여넣으세요. 사이트와 데이터를 이해하고 행동할 수 있는 AI 어시스턴트가 생깁니다.",
+        f1t: "답변", f1d: "사이트를 알고 있어요. 무엇이든 물어보세요.",
+        f2t: "데이터", f2d: '"3월 매출 보여줘" → 완료.',
+        f3t: "액션", f3d: "이동, 페이지 생성, 설정 변경.",
+        try: "이 페이지에서 작동 중입니다. 사이트를 영어로 바꿔 달라고 해보세요."
+      },
+      ar: {
+        badge: "سكربت واحد. ذكاء اصطناعي كامل.",
+        title: "موقعك، الآن بعقل.",
+        subtitle: "الصق سطرًا واحدًا. احصل على مساعد ذكي يعرف موقعك وبياناتك ويستطيع التصرف.",
+        f1t: "إجابات", f1d: "يعرف موقعك. اسأل أي شيء.",
+        f2t: "بيانات", f2d: "«اعرض مبيعات مارس» → تم.",
+        f3t: "إجراءات", f3d: "يتنقل، ينشئ صفحات، يغيّر الإعدادات.",
+        try: "إنه يعمل على هذه الصفحة. اطلب منه تحويل الموقع إلى الإنجليزية."
+      },
+      hi: {
+        badge: "एक स्क्रिप्ट। पूरा AI।",
+        title: "आपकी साइट, अब दिमाग़ के साथ।",
+        subtitle: "एक लाइन पेस्ट करें। एक AI असिस्टेंट पाएं जो आपकी साइट और डेटा को जानता है — और काम कर सकता है।",
+        f1t: "जवाब", f1d: "आपकी साइट को जानता है। कुछ भी पूछें।",
+        f2t: "डेटा", f2d: '"मार्च की बिक्री दिखाओ" → हो गया।',
+        f3t: "एक्शन", f3d: "नेविगेट करता है, पेज बनाता है, सेटिंग्स बदलता है।",
+        try: "यह इसी पेज पर चालू है। इससे साइट अंग्रेज़ी में बदलने को कहें।"
+      },
+      tr: {
+        badge: "Tek satır. Tam yapay zekâ.",
+        title: "Siteniz, artık beyinli.",
+        subtitle: "Tek satır yapıştırın. Sitenizi ve verilerinizi bilen, harekete geçebilen bir AI asistanı edinin.",
+        f1t: "Cevaplar", f1d: "Sitenizi bilir. İstediğinizi sorun.",
+        f2t: "Veri", f2d: '"Mart satışlarını göster" → tamam.',
+        f3t: "Eylemler", f3d: "Gezinir, sayfa oluşturur, ayarları değiştirir.",
+        try: "Bu sayfada canlı. Siteyi İngilizceye çevirmesini isteyin."
+      },
+      pl: {
+        badge: "Jeden skrypt. Pełne AI.",
+        title: "Twoja strona, teraz z mózgiem.",
+        subtitle: "Wklej jedną linię. Zyskaj asystenta AI, który zna twoją stronę i dane — i potrafi działać.",
+        f1t: "Odpowiedzi", f1d: "Zna twoją stronę. Pytaj o wszystko.",
+        f2t: "Dane", f2d: '"Pokaż sprzedaż z marca" → gotowe.',
+        f3t: "Akcje", f3d: "Nawiguje, generuje strony, zmienia ustawienia.",
+        try: "Działa na tej stronie. Poproś o przełączenie na angielski."
+      }
+    };
+
+    window.MagicScriptActions = {
+      setLanguage(lang) {
+        const dict = i18n[lang];
+        if (!dict) return false;
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+        document.querySelectorAll("[data-i18n]").forEach(el => {
+          const key = el.getAttribute("data-i18n");
+          if (dict[key]) el.textContent = dict[key];
+        });
+        return true;
+      }
+    };
+  </script>
+  <script src="widget.js"></script>
+</body>
+</html>
