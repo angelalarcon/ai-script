@@ -69,7 +69,7 @@ async function fetchSiteInfo(url) {
   if (!isSafeUrl(url)) return null;
   try {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 6000);
+    const timer = setTimeout(() => controller.abort(), 4000);
     const res = await fetch(url, {
       signal: controller.signal,
       headers: {
@@ -135,10 +135,14 @@ export default async (req) => {
     generationConfig: { maxOutputTokens: 2048, thinkingConfig: { thinkingBudget: 0 } },
   });
 
-  // Gemini's free tier occasionally returns a transient "model overloaded" error —
-  // retry a couple of times with backoff before giving up.
+  // Gemini's free tier occasionally returns a transient "model overloaded" error.
+  // A single failed attempt can itself take ~10-15s to come back, and Netlify's
+  // Edge Function has its own hard ceiling (~40s) — so retry at most once, and
+  // stop entirely once we're eating into that budget, rather than compounding
+  // slow failures into a raw platform timeout with no clean error response.
+  const deadline = Date.now() + 24000;
   let res, data;
-  for (let attempt = 0; attempt < 3; attempt++) {
+  for (let attempt = 0; attempt < 2; attempt++) {
     res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
       { method: "POST", headers: { "content-type": "application/json", "x-goog-api-key": key }, body }
@@ -147,8 +151,8 @@ export default async (req) => {
     if (res.ok) break;
     const transient = res.status === 429 || res.status === 503 ||
       /overloaded|high demand|unavailable/i.test((data.error && data.error.message) || "");
-    if (!transient || attempt === 2) break;
-    await new Promise((r) => setTimeout(r, 900 * (attempt + 1)));
+    if (!transient || attempt === 1 || Date.now() > deadline) break;
+    await new Promise((r) => setTimeout(r, 500));
   }
   if (!res.ok) {
     return Response.json(
