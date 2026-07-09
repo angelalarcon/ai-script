@@ -235,8 +235,7 @@
         "• Answer questions about the site\n" +
         "• Show a user's data (e.g. \"show my sales chart for March\")\n" +
         "• Take actions — navigate, generate pages, change settings\n" +
-        "• Remember our previous chats\n\n" +
-        "Try me: ask me to switch this site to any of 15 languages!"
+        "• Remember our previous chats"
       );
     }
     if (/install|add|setup|set up|integrat|how.*(use|work)/.test(t)) {
@@ -249,13 +248,13 @@
       return reply("Yes — I keep your chat history on this site. Close the tab, come back, and it's still here.");
     }
     if (/chart|data|graph/.test(t)) {
-      return reply("On a data-heavy site I'd fetch that chart and open a page with it. Here on the demo, try the language switch instead!");
+      return reply("I can generate a chart or report as a new page — but my AI brain seems briefly unavailable. Try again in a moment!");
     }
     if (/price|cost|free/.test(t)) {
       return reply("This is a demo — pricing is up to your imagination. 😄");
     }
     if (/\b(hi|hello|hola|hey|bonjour|hallo|ciao|olá|привет|你好|こんにちは|안녕|مرحبا|merhaba|cześć)\b/.test(t)) {
-      return reply("Hey! 👋 Ask me what I can do, or tell me to switch this site to another language.");
+      return reply("Hey! 👋 Ask me what I can do.");
     }
     reply('Not sure about that one. Try "what can you do?" or "switch to French".');
   }
