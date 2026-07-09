@@ -60,7 +60,9 @@ export default async (req) => {
       body: JSON.stringify({
         system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
         contents: safe,
-        generationConfig: { maxOutputTokens: 2048 },
+        // disable extended "thinking" — it's unnecessary for this task and its
+        // unpredictable latency was the cause of intermittent function timeouts
+        generationConfig: { maxOutputTokens: 2048, thinkingConfig: { thinkingBudget: 0 } },
       }),
     }
   );
