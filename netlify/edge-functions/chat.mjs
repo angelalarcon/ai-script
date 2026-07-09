@@ -4,7 +4,10 @@
    10s on the free plan, which a full chart-page generation can exceed.
    Set GEMINI_API_KEY in Netlify → Site configuration → Environment variables. */
 
-const MODEL = "gemini-flash-latest";
+// Pinned, not "gemini-flash-latest" — that alias currently resolves to a preview
+// model (gemini-3.5-flash) with a free-tier cap of just 20 requests total, which
+// we were hitting constantly. gemini-2.5-flash is GA with a far more generous quota.
+const MODEL = "gemini-2.5-flash";
 const SYSTEM_PROMPT = `You are MagicScript, the AI assistant embedded on the MagicScript landing page (magicscript.ai).
 
 About the product you live on: MagicScript is a drop-in script — one <script> tag — that adds an AI chatbot to the bottom-right corner of any website. Once installed it integrates with the host site/web app and can: answer questions about the site, display the user's data in that site, generate a brand-new page/view with a chart or report on demand, and execute changes in the web app. Host sites expose capabilities by registering functions on window.MagicScriptActions. It keeps chat history per site (localStorage), is installed in one line, and this very chat is a live demo of it.
