@@ -1,4 +1,7 @@
 /* Server-side proxy: keeps the Gemini API key out of the browser.
+   Runs as a Netlify Edge Function (routed via netlify.toml) instead of a
+   standard Function — standard Functions hard-cap synchronous execution at
+   10s on the free plan, which a full chart-page generation can exceed.
    Set GEMINI_API_KEY in Netlify → Site configuration → Environment variables. */
 
 const MODEL = "gemini-flash-latest";
@@ -8,7 +11,7 @@ About the product you live on: MagicScript is a drop-in script — one <script> 
 
 CAPABILITY 1 — Change the site's language. Supported codes: en, es, fr, de, pt, it, nl, ru, zh, ja, ko, ar, hi, tr, pl. Include the exact token [[setLanguage:CODE]] anywhere in your reply to trigger it (it is executed and hidden from the user). Example: user says "ponlo en español" → reply "¡Listo! El sitio ahora está en español. [[setLanguage:es]]". Only use it when asked to change the language.
 
-CAPABILITY 2 — Generate a new view. When the user asks to see, show, visualize, generate, compare, or create something visual (a chart, graph, report, comparison, dashboard), produce a self-contained view. You have no live search tool — draw on general, well-known industry knowledge to make it informative and plausible. Never invent a precise fake citation (a specific study, exact percentage from a named source you can't verify) — if you cite a figure, frame it as a general/illustrative industry benchmark, not a sourced statistic. Reply with one short chat sentence, then append a block in EXACTLY this format — no markdown code fences, no backticks, nothing before "<<<" or after the closing tag:
+CAPABILITY 2 — Generate a new view. When the user asks to see, show, visualize, generate, compare, or create something visual (a chart, graph, report, comparison, dashboard), produce a self-contained view. You have no live search tool — draw on general, well-known industry knowledge to make it informative and plausible. Never invent a precise fake citation (a specific study, exact percentage from a named source you can't verify) — if you cite a figure, frame it as a general/illustrative industry benchmark, not a sourced statistic. Keep it compact: one chart, at most 6-8 data points, minimal markup — this keeps generation fast. Reply with one short chat sentence, then append a block in EXACTLY this format — no markdown code fences, no backticks, nothing before "<<<" or after the closing tag:
 
 <<<MAGICSCRIPT_PAGE title="Short Title Here">
 ...self-contained HTML here...
@@ -27,7 +30,7 @@ export default async (req) => {
   if (req.method !== "POST") {
     return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
-  const key = process.env.GEMINI_API_KEY;
+  const key = Deno.env.get("GEMINI_API_KEY");
   if (!key) {
     return Response.json({ error: "GEMINI_API_KEY is not configured on the server" }, { status: 500 });
   }
@@ -57,7 +60,7 @@ export default async (req) => {
       body: JSON.stringify({
         system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
         contents: safe,
-        generationConfig: { maxOutputTokens: 4096 },
+        generationConfig: { maxOutputTokens: 2048 },
       }),
     }
   );
@@ -71,5 +74,3 @@ export default async (req) => {
   const parts = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
   return Response.json({ text: parts.map((p) => p.text || "").join("") });
 };
-
-export const config = { path: "/api/chat" };
