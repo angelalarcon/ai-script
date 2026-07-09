@@ -42,6 +42,23 @@
     #ms-input::placeholder{color:#94a3b8}
     #ms-input:focus{border-color:#4f46e5}
     #ms-send{background:#4f46e5;color:#fff;border:none;border-radius:9999px;width:36px;height:36px;cursor:pointer}
+
+    #ms-view{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:9990;
+      display:none;align-items:center;justify-content:center;padding:32px 24px;
+      font-family:ui-sans-serif,system-ui,sans-serif}
+    #ms-view.open{display:flex;animation:ms-view-fade .2s ease-out}
+    @keyframes ms-view-fade{from{opacity:0}}
+    #ms-view-card{background:#fff;border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.35);
+      width:100%;max-width:760px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;
+      animation:ms-view-pop .32s cubic-bezier(.34,1.56,.64,1) backwards}
+    @keyframes ms-view-pop{from{opacity:0;transform:translateY(24px) scale(.96)}}
+    #ms-view-head{display:flex;align-items:center;gap:10px;padding:14px 18px;background:#4f46e5;color:#fff;flex-shrink:0}
+    #ms-view-head .ms-view-title{font-weight:600;font-size:15px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #ms-view-head button{background:none;border:none;color:#c7d2fe;cursor:pointer;font-size:16px}
+    #ms-view-head button:hover{color:#fff}
+    #ms-view-body{flex:1;overflow:auto;background:#fff}
+    #ms-view-frame{width:100%;height:100%;border:none;display:block;min-height:420px}
+    @media (prefers-reduced-motion:reduce){#ms-view.open,#ms-view-card{animation:none}}
   `;
 
   const style = document.createElement("style");
@@ -69,12 +86,38 @@
     </form>
   `;
 
+  const view = document.createElement("div");
+  view.id = "ms-view";
+  view.innerHTML = `
+    <div id="ms-view-card" role="dialog" aria-modal="true">
+      <div id="ms-view-head">
+        <i class="fa-solid fa-chart-line"></i>
+        <span class="ms-view-title" id="ms-view-title">Generated view</span>
+        <button id="ms-view-close" title="Close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="ms-view-body"><iframe id="ms-view-frame" sandbox=""></iframe></div>
+    </div>
+  `;
+
   document.body.appendChild(btn);
   document.body.appendChild(panel);
+  document.body.appendChild(view);
 
   const log = panel.querySelector("#ms-log");
   const form = panel.querySelector("#ms-form");
   const input = panel.querySelector("#ms-input");
+
+  function closeView() { view.classList.remove("open"); }
+  function openGeneratedPage(html, title) {
+    view.querySelector("#ms-view-title").textContent = title || "Generated view";
+    view.querySelector("#ms-view-frame").srcdoc =
+      '<!doctype html><html><head><meta charset="utf-8"><style>' +
+      "body{margin:0;padding:0;font-family:ui-sans-serif,system-ui,sans-serif;color:#0f172a}" +
+      "</style></head><body>" + html + "</body></html>";
+    view.classList.add("open");
+  }
+  view.addEventListener("click", (e) => { if (e.target === view) closeView(); });
+  view.querySelector("#ms-view-close").addEventListener("click", closeView);
 
   let history = [];
   try { history = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) {}
@@ -95,6 +138,14 @@
   }
 
   function reply(text) { setTimeout(() => push("bot", text), 300); }
+
+  function extractPage(text) {
+    // pulls out the <<<MAGICSCRIPT_PAGE ...>>> ... <<<END_MAGICSCRIPT_PAGE>>> block, if the AI generated one
+    const m = text.match(/<<<MAGICSCRIPT_PAGE(?:\s+title="([^"]*)")?\s*>>>([\s\S]*?)<<<END_MAGICSCRIPT_PAGE>>>/);
+    if (!m) return { chat: text, page: null, title: null };
+    const chat = (text.slice(0, m.index) + text.slice(m.index + m[0].length)).replace(/\s{2,}/g, " ").trim();
+    return { chat, page: m[2].trim(), title: m[1] || "Generated view" };
+  }
 
   function runActions(text) {
     // execute action tokens Claude emits, then hide them from the user
@@ -136,7 +187,10 @@
         // server/function unavailable (e.g. running the file locally without Netlify) — degrade gracefully
         return answer(history[history.length - 1].text);
       }
-      push("bot", runActions(data.text) || "Sorry, I couldn't answer that one.");
+      const { chat, page, title } = extractPage(data.text);
+      const chatText = runActions(chat);
+      push("bot", chatText || (page ? "Here's your view! ✨" : "Sorry, I couldn't answer that one."));
+      if (page) openGeneratedPage(page, title);
     } catch (err) {
       typing.remove();
       answer(history[history.length - 1].text);
