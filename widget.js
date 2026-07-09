@@ -42,6 +42,23 @@
     #ms-input::placeholder{color:#94a3b8}
     #ms-input:focus{border-color:#4f46e5}
     #ms-send{background:#4f46e5;color:#fff;border:none;border-radius:9999px;width:36px;height:36px;cursor:pointer}
+
+    #ms-page{position:fixed;inset:0;background:#020617;color:#e2e8f0;z-index:9990;
+      display:none;flex-direction:column;font-family:ui-sans-serif,system-ui,sans-serif}
+    #ms-page.open{display:flex;animation:ms-page-in .25s ease-out}
+    @keyframes ms-page-in{from{opacity:0;transform:translateY(10px)}}
+    #ms-page-head{display:flex;align-items:center;gap:12px;padding:16px 24px;
+      border-bottom:1px solid #1e293b;flex-shrink:0}
+    #ms-page-head .ms-page-icon{color:#818cf8}
+    #ms-page-back{display:inline-flex;align-items:center;gap:6px;background:rgba(79,70,229,.15);
+      color:#a5b4fc;border:none;border-radius:9999px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer}
+    #ms-page-back:hover{background:rgba(79,70,229,.3);color:#fff}
+    #ms-page-title{font-size:15px;font-weight:600;color:#f1f5f9;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #ms-page-body{flex:1;overflow-y:auto;padding:36px 24px}
+    #ms-page-content{max-width:680px;margin:0 auto}
+    #ms-page-content h1,#ms-page-content h2{color:#f1f5f9}
+    #ms-page-content p{color:#94a3b8;line-height:1.6}
+    @media (prefers-reduced-motion:reduce){#ms-page.open{animation:none}}
   `;
 
   const style = document.createElement("style");
@@ -69,6 +86,18 @@
     </form>
   `;
 
+  const page = document.createElement("div");
+  page.id = "ms-page";
+  page.innerHTML = `
+    <div id="ms-page-head">
+      <button id="ms-page-back"><i class="fa-solid fa-arrow-left"></i> Back to site</button>
+      <span id="ms-page-title">Generated view</span>
+      <i class="fa-solid fa-wand-magic-sparkles ms-page-icon"></i>
+    </div>
+    <div id="ms-page-body"><div id="ms-page-content"></div></div>
+  `;
+
+  document.body.appendChild(page);
   document.body.appendChild(btn);
   document.body.appendChild(panel);
 
@@ -76,22 +105,28 @@
   const form = panel.querySelector("#ms-form");
   const input = panel.querySelector("#ms-input");
 
-  // Builds a real, standalone HTML document from the AI-generated fragment and
-  // navigates the browser to it (via a blob: URL — this is a static demo with
-  // no backend to persist a real route). A "back to site" link returns here.
-  function openGeneratedPage(html, title) {
-    const doc =
-      "<!doctype html><html><head><meta charset=\"utf-8\"><title>" +
-      (title || "Generated view") +
-      "</title><style>body{margin:0;padding:0;font-family:ui-sans-serif,system-ui,sans-serif;color:#0f172a;background:#f8fafc}" +
-      ".ms-back{display:inline-flex;align-items:center;gap:6px;margin:20px;padding:8px 14px;border-radius:9999px;" +
-      "background:#4f46e5;color:#fff;text-decoration:none;font-size:13px;font-weight:600}" +
-      ".ms-back:hover{background:#4338ca}</style></head><body>" +
-      "<a class=\"ms-back\" href=\"#\" onclick=\"history.back();return false;\">← Back to site</a>" +
-      html + "</body></html>";
-    const url = URL.createObjectURL(new Blob([doc], { type: "text/html" }));
-    window.location.href = url;
+  // Strips scripts/handlers from AI-generated HTML before it's injected into our
+  // own DOM (we're not using a sandboxed iframe here, so this is defense-in-depth
+  // against the model ever including something it was told not to).
+  function sanitizeHtml(html) {
+    return String(html)
+      .replace(/<script[\s\S]*?<\/script>/gi, "")
+      .replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
+      .replace(/ on[a-z]+\s*=\s*"[^"]*"/gi, "")
+      .replace(/ on[a-z]+\s*=\s*'[^']*'/gi, "")
+      .replace(/javascript:/gi, "");
   }
+
+  // Shows the AI-generated view as a full-viewport panel styled to match this
+  // site's theme, layered *below* the chat button/panel (z-index) so the chat
+  // stays visible and usable the whole time — nothing navigates away.
+  function openGeneratedPage(html, title) {
+    page.querySelector("#ms-page-title").textContent = title || "Generated view";
+    page.querySelector("#ms-page-content").innerHTML = sanitizeHtml(html);
+    page.querySelector("#ms-page-body").scrollTop = 0;
+    page.classList.add("open");
+  }
+  page.querySelector("#ms-page-back").addEventListener("click", () => page.classList.remove("open"));
 
   let history = [];
   try { history = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) {}
@@ -158,14 +193,19 @@
       const data = await res.json();
       typing.remove();
 
+      if (res.status === 502) {
+        // the AI backend itself failed (e.g. Gemini briefly overloaded) — say so honestly
+        // rather than silently substituting an unrelated canned reply
+        return push("bot", "⚠️ My AI brain is briefly overloaded — please ask that again in a few seconds.");
+      }
       if (!res.ok) {
-        // server/function unavailable (e.g. running the file locally without Netlify) — degrade gracefully
+        // endpoint missing entirely (e.g. running the file locally without Netlify) — degrade gracefully
         return answer(history[history.length - 1].text);
       }
-      const { chat, page, title } = extractPage(data.text);
+      const { chat, page: pageHtml, title } = extractPage(data.text);
       const chatText = runActions(chat);
-      push("bot", chatText || (page ? "Here's your view! ✨" : "Sorry, I couldn't answer that one."));
-      if (page) openGeneratedPage(page, title);
+      push("bot", chatText || (pageHtml ? "Here's your view! ✨" : "Sorry, I couldn't answer that one."));
+      if (pageHtml) openGeneratedPage(pageHtml, title);
     } catch (err) {
       typing.remove();
       answer(history[history.length - 1].text);
