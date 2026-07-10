@@ -267,9 +267,10 @@
       const { chat, page: pageHtml, title } = extractPage(data.text);
       const chatText = runActions(chat); // also executes any [[setLanguage:xx]] token as a side effect
       if (pageHtml) {
-        // the page carries the actual content — keep the chat bubble short regardless
-        // of how long a preamble the model wrote before the <<<MAGICSCRIPT_PAGE>>> block
-        push("bot", "Here's your view! ✨");
+        // show the model's own short contextual line (e.g. "Here's a bit of what we
+        // can do for you" vs "Here's your chart!") rather than one fixed message —
+        // the prompt enforces that it stays a one-liner, never a preview of the page
+        push("bot", chatText || "Here's your view! ✨");
         openGeneratedPage(pageHtml, title);
       } else {
         push("bot", chatText || "Sorry, I couldn't answer that one.");
