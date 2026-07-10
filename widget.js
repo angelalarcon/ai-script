@@ -10,6 +10,21 @@
   const LOTTIE_ASSISTANT = "https://assets-v2.lottiefiles.com/a/f0e4e78a-117f-11ee-a561-9f6d0ded2937/u3HyS9kfe7.lottie";
   const LOTTIE_TYPING = "https://assets-v2.lottiefiles.com/a/b68f0260-1188-11ee-adaf-6fe510d5f86b/X65jJBNW1W.lottie";
   const LOTTIE_WAND = "https://assets-v2.lottiefiles.com/a/02a1a5f2-fd76-11ee-8f60-0360b1002909/zr8eV49ahH.lottie";
+  const LOTTIE_CHAT = "https://assets-v2.lottiefiles.com/a/12317c90-1172-11ee-b93d-4747d29d663a/c3GkAYyExw.lottie";
+  const LOTTIE_CHART = "https://assets-v2.lottiefiles.com/a/210a2ca6-116f-11ee-b888-5fa0d8377999/aEHtvZId91.lottie";
+  const LOTTIE_BOLT = "https://assets-v2.lottiefiles.com/a/0524e07c-116e-11ee-9947-5fee8f8e40a2/Co3m1YD9Nm.lottie";
+  const LOTTIE_ROCKET = "https://assets-v2.lottiefiles.com/a/05035cea-1164-11ee-9ed5-773b0ece7987/YNiheKxRRj.lottie";
+  const LOTTIE_SHIELD = "https://assets-v2.lottiefiles.com/a/27103524-3ee9-11f0-89a9-a310fdeaaccb/7oKZIVNWgF.lottie";
+  // maps the icon names our own prompt suggests to a matching animation — any icon
+  // not in this list just stays a static Font Awesome icon
+  const ICON_LOTTIE = {
+    "fa-comments": LOTTIE_CHAT, "fa-comment": LOTTIE_CHAT, "fa-comment-dots": LOTTIE_CHAT,
+    "fa-chart-line": LOTTIE_CHART, "fa-chart-simple": LOTTIE_CHART, "fa-gauge-high": LOTTIE_CHART,
+    "fa-magnifying-glass": LOTTIE_CHART,
+    "fa-bolt": LOTTIE_BOLT, "fa-plug": LOTTIE_BOLT,
+    "fa-rocket": LOTTIE_ROCKET, "fa-users": LOTTIE_ROCKET,
+    "fa-shield-halved": LOTTIE_SHIELD, "fa-shield": LOTTIE_SHIELD,
+  };
 
   // Load Tailwind (with the typography plugin, for styling AI-generated markup via
   // `prose`) unless the host page already has its own — avoids running two JIT
@@ -174,6 +189,26 @@
       wrap.className = "inline-block bg-white p-2 rounded-xl shadow-md mb-4 not-prose";
       img.replaceWith(wrap);
       wrap.appendChild(img);
+    });
+
+    // swap the icons our own prompt suggests for a matching Lottie animation, so
+    // icons (and the titles that lead with one) are animated, not just static glyphs
+    container.querySelectorAll("i[class*='fa-']").forEach((icon) => {
+      const key = Object.keys(ICON_LOTTIE).find((k) => icon.classList.contains(k));
+      if (!key) return;
+      const lottie = document.createElement("dotlottie-wc");
+      lottie.setAttribute("src", ICON_LOTTIE[key]);
+      lottie.setAttribute("autoplay", "");
+      lottie.setAttribute("loop", "");
+      lottie.className = "inline-block w-5 h-5 align-[-4px] not-prose";
+      icon.replaceWith(lottie);
+    });
+
+    // give every chart breathing room from whatever text precedes it — the model
+    // reliably forgets top margin, which crowds a tall bar's value label into the
+    // heading above it
+    container.querySelectorAll("svg").forEach((svg) => {
+      svg.classList.add("block", "mt-6");
     });
 
     return container.innerHTML;
