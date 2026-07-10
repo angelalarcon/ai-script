@@ -10,20 +10,15 @@
   const LOTTIE_ASSISTANT = "https://assets-v2.lottiefiles.com/a/f0e4e78a-117f-11ee-a561-9f6d0ded2937/u3HyS9kfe7.lottie";
   const LOTTIE_TYPING = "https://assets-v2.lottiefiles.com/a/b68f0260-1188-11ee-adaf-6fe510d5f86b/X65jJBNW1W.lottie";
   const LOTTIE_WAND = "https://assets-v2.lottiefiles.com/a/02a1a5f2-fd76-11ee-8f60-0360b1002909/zr8eV49ahH.lottie";
-  const LOTTIE_CHAT = "https://assets-v2.lottiefiles.com/a/12317c90-1172-11ee-b93d-4747d29d663a/c3GkAYyExw.lottie";
-  const LOTTIE_CHART = "https://assets-v2.lottiefiles.com/a/210a2ca6-116f-11ee-b888-5fa0d8377999/aEHtvZId91.lottie";
-  const LOTTIE_BOLT = "https://assets-v2.lottiefiles.com/a/0524e07c-116e-11ee-9947-5fee8f8e40a2/Co3m1YD9Nm.lottie";
   const LOTTIE_ROCKET = "https://assets-v2.lottiefiles.com/a/05035cea-1164-11ee-9ed5-773b0ece7987/YNiheKxRRj.lottie";
-  const LOTTIE_SHIELD = "https://assets-v2.lottiefiles.com/a/27103524-3ee9-11f0-89a9-a310fdeaaccb/7oKZIVNWgF.lottie";
-  // maps the icon names our own prompt suggests to a matching animation — any icon
-  // not in this list just stays a static Font Awesome icon
+  const LOTTIE_TEAM = "https://assets-v2.lottiefiles.com/a/27103524-3ee9-11f0-89a9-a310fdeaaccb/7oKZIVNWgF.lottie";
+  // Only two icon swaps made the cut — several other candidates I tried (chat,
+  // chart, bolt) rendered nearly blank or with a baked-in white background at
+  // small size, so those icons stay static Font Awesome rather than ship a
+  // broken-looking animation.
   const ICON_LOTTIE = {
-    "fa-comments": LOTTIE_CHAT, "fa-comment": LOTTIE_CHAT, "fa-comment-dots": LOTTIE_CHAT,
-    "fa-chart-line": LOTTIE_CHART, "fa-chart-simple": LOTTIE_CHART, "fa-gauge-high": LOTTIE_CHART,
-    "fa-magnifying-glass": LOTTIE_CHART,
-    "fa-bolt": LOTTIE_BOLT, "fa-plug": LOTTIE_BOLT,
-    "fa-rocket": LOTTIE_ROCKET, "fa-users": LOTTIE_ROCKET,
-    "fa-shield-halved": LOTTIE_SHIELD, "fa-shield": LOTTIE_SHIELD,
+    "fa-rocket": LOTTIE_ROCKET,
+    "fa-users": LOTTIE_TEAM,
   };
 
   // Load Tailwind (with the typography plugin, for styling AI-generated markup via
@@ -200,7 +195,7 @@
       lottie.setAttribute("src", ICON_LOTTIE[key]);
       lottie.setAttribute("autoplay", "");
       lottie.setAttribute("loop", "");
-      lottie.className = "inline-block w-8 h-8 align-[-10px] not-prose";
+      lottie.className = "inline-block w-7 h-7 align-[-8px] not-prose";
       icon.replaceWith(lottie);
     });
 
