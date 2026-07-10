@@ -6,6 +6,11 @@
   const CHAT_ENDPOINT = "/api/chat";
   const POP = "transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none";
 
+  // Real, verified LottieFiles assets (fetched and confirmed live):
+  const LOTTIE_ASSISTANT = "https://assets-v2.lottiefiles.com/a/f0e4e78a-117f-11ee-a561-9f6d0ded2937/u3HyS9kfe7.lottie";
+  const LOTTIE_TYPING = "https://assets-v2.lottiefiles.com/a/b68f0260-1188-11ee-adaf-6fe510d5f86b/X65jJBNW1W.lottie";
+  const LOTTIE_WAND = "https://assets-v2.lottiefiles.com/a/02a1a5f2-fd76-11ee-8f60-0360b1002909/zr8eV49ahH.lottie";
+
   // Load Tailwind (with the typography plugin, for styling AI-generated markup via
   // `prose`) unless the host page already has its own — avoids running two JIT
   // instances at once. Load Font Awesome too, since the widget's icons need it.
@@ -20,6 +25,21 @@
     fa.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css";
     document.head.appendChild(fa);
   }
+  // The dotLottie web component — renders the .lottie animations above via <dotlottie-wc>.
+  if (!document.querySelector('script[src*="dotlottie-wc"]')) {
+    const dl = document.createElement("script");
+    dl.type = "module";
+    dl.src = "https://unpkg.com/@lottiefiles/dotlottie-wc@latest/dist/dotlottie-wc.js";
+    document.head.appendChild(dl);
+  }
+
+  // A pulsing ring behind the launcher invites the first click — removed for good
+  // once the user has opened the chat, so it doesn't nag afterward.
+  const pingRing = document.createElement("span");
+  pingRing.setAttribute("aria-hidden", "true");
+  pingRing.className =
+    "fixed bottom-6 right-6 w-14 h-14 rounded-full bg-indigo-400 opacity-40 " +
+    "animate-ping pointer-events-none z-[9998] motion-reduce:hidden";
 
   const btn = document.createElement("button");
   btn.id = "ms-btn";
@@ -27,7 +47,7 @@
   btn.className =
     "fixed bottom-6 right-6 w-14 h-14 rounded-full bg-indigo-600 text-white border-none " +
     "cursor-pointer shadow-[0_10px_25px_rgba(79,70,229,0.45)] z-[9999] flex items-center justify-center " +
-    "transition-transform duration-150 hover:scale-110 motion-reduce:transition-none";
+    "transition-transform duration-150 hover:scale-110 active:scale-90 motion-reduce:transition-none";
   btn.innerHTML = '<img src="logo.svg" alt="MagicScript" class="invert w-[34px] h-[34px] block">';
 
   const panel = document.createElement("div");
@@ -40,14 +60,14 @@
     <div id="ms-head" class="bg-indigo-600 text-white px-4 py-3 flex items-center gap-2.5 flex-shrink-0">
       <i class="fa-solid fa-wand-magic-sparkles"></i>
       <span class="font-semibold flex-1 text-sm">MagicScript</span>
-      <button id="ms-clear" title="Clear history" class="bg-transparent border-none text-indigo-200 cursor-pointer text-sm hover:text-white"><i class="fa-solid fa-trash"></i></button>
-      <button id="ms-close" title="Close" class="bg-transparent border-none text-indigo-200 cursor-pointer text-sm hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      <button id="ms-clear" title="Clear history" class="bg-transparent border-none text-indigo-200 cursor-pointer text-sm hover:text-white transition-transform duration-150 active:scale-75 motion-reduce:transition-none"><i class="fa-solid fa-trash"></i></button>
+      <button id="ms-close" title="Close" class="bg-transparent border-none text-indigo-200 cursor-pointer text-sm hover:text-white transition-transform duration-150 active:scale-75 motion-reduce:transition-none"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div id="ms-log" class="flex-1 overflow-y-auto p-3.5 flex flex-col gap-2 bg-slate-50"></div>
     <form id="ms-form" class="flex gap-2 p-2.5 border-t border-slate-200 bg-white flex-shrink-0">
       <input id="ms-input" autocomplete="off" placeholder="Ask me anything…"
         class="flex-1 border border-slate-300 rounded-full px-3.5 py-2 text-sm outline-none bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-600">
-      <button id="ms-send" type="submit" class="bg-indigo-600 text-white border-none rounded-full w-9 h-9 flex items-center justify-center cursor-pointer hover:bg-indigo-700"><i class="fa-solid fa-paper-plane"></i></button>
+      <button id="ms-send" type="submit" class="bg-indigo-600 text-white border-none rounded-full w-9 h-9 flex items-center justify-center cursor-pointer hover:bg-indigo-700 transition-transform duration-150 active:scale-75 motion-reduce:transition-none"><i class="fa-solid fa-paper-plane"></i></button>
     </form>
   `;
 
@@ -58,11 +78,11 @@
     "hidden opacity-0 translate-y-2";
   page.innerHTML = `
     <div id="ms-page-head" class="flex items-center gap-3 px-6 py-4 border-b border-slate-800 flex-shrink-0">
-      <button id="ms-page-back" class="inline-flex items-center gap-1.5 bg-indigo-600/15 text-indigo-300 border-none rounded-full px-4 py-2 text-sm font-semibold cursor-pointer hover:bg-indigo-600/30 hover:text-white">
+      <button id="ms-page-back" class="inline-flex items-center gap-1.5 bg-indigo-600/15 text-indigo-300 border-none rounded-full px-4 py-2 text-sm font-semibold cursor-pointer hover:bg-indigo-600/30 hover:text-white transition-transform duration-150 active:scale-90 motion-reduce:transition-none">
         <i class="fa-solid fa-arrow-left"></i> Back to site
       </button>
       <span id="ms-page-title" class="text-[15px] font-semibold text-slate-100 flex-1 truncate">Generated view</span>
-      <i class="fa-solid fa-wand-magic-sparkles text-indigo-400"></i>
+      <dotlottie-wc src="${LOTTIE_WAND}" autoplay loop class="w-7 h-7 block"></dotlottie-wc>
     </div>
     <div id="ms-page-body" class="flex-1 overflow-y-auto px-6 py-9">
       <div id="ms-page-content"
@@ -73,6 +93,7 @@
   `;
 
   document.body.appendChild(page);
+  document.body.appendChild(pingRing);
   document.body.appendChild(btn);
   document.body.appendChild(panel);
 
@@ -158,12 +179,32 @@
     return container.innerHTML;
   }
 
+  // Reveals matched children one after another (fade + rise + scale, staggered by
+  // Tailwind's own delay-[Nms] utility — never inline style) — used to animate in
+  // each title/icon/callout of a freshly-opened generated page.
+  function staggerReveal(container, selector, step, max) {
+    const els = [...container.querySelectorAll(selector)];
+    els.forEach((el, i) => {
+      el.classList.add(
+        "transition-all", "duration-500", "ease-[cubic-bezier(0.34,1.56,0.64,1)]", "motion-reduce:transition-none",
+        "opacity-0", "translate-y-3", `delay-[${Math.min(i * step, max)}ms]`
+      );
+    });
+    requestAnimationFrame(() => {
+      els.forEach((el) => {
+        el.classList.remove("opacity-0", "translate-y-3");
+        el.classList.add("opacity-100", "translate-y-0");
+      });
+    });
+  }
+
   // Shows the AI-generated view as a full-viewport panel styled to match this site's
   // theme, layered *below* the chat button/panel (z-index) so the chat stays visible
   // and usable the whole time — nothing navigates away.
   function openGeneratedPage(html, title) {
     page.querySelector("#ms-page-title").textContent = title || "Generated view";
-    page.querySelector("#ms-page-content").innerHTML = sanitizeHtml(html);
+    const content = page.querySelector("#ms-page-content");
+    content.innerHTML = sanitizeHtml(html);
     page.querySelector("#ms-page-body").scrollTop = 0;
     page.classList.remove("hidden");
     page.classList.add("flex");
@@ -171,6 +212,7 @@
       page.classList.remove("opacity-0", "translate-y-2");
       page.classList.add("opacity-100", "translate-y-0");
     });
+    staggerReveal(content, "h1, h2, h3, .not-prose, li", 70, 560);
   }
   function closeGeneratedPage() {
     page.classList.remove("opacity-100", "translate-y-0");
@@ -229,9 +271,8 @@
 
   function showTyping() {
     const div = document.createElement("div");
-    div.className =
-      "max-w-[85%] self-start bg-slate-200 text-slate-900 rounded-2xl rounded-bl-sm px-3 py-2 text-sm tracking-widest animate-pulse";
-    div.textContent = "•••";
+    div.className = "max-w-[85%] self-start bg-slate-200 rounded-2xl rounded-bl-sm px-3 py-2 flex items-center";
+    div.innerHTML = `<dotlottie-wc src="${LOTTIE_TYPING}" autoplay loop class="w-10 h-6 block"></dotlottie-wc>`;
     log.appendChild(div);
     log.scrollTop = log.scrollHeight;
     return div;
@@ -346,10 +387,17 @@
   function openPanel() {
     panel.classList.remove("hidden");
     panel.classList.add("flex");
+    pingRing.remove(); // they've found the chat — stop inviting the click
     if (!log.hasChildNodes()) {
       // stagger each historical message's entrance; live messages (via push) pop in immediately
       history.forEach((msg, i) => render(msg, Math.min(160 + i * 60, 560)));
-      if (!history.length) push("bot", "Hi! I'm MagicScript — the assistant living on this site. Ask me what I can do. ✨");
+      if (!history.length) {
+        const hero = document.createElement("div");
+        hero.className = "flex justify-center py-1";
+        hero.innerHTML = `<dotlottie-wc src="${LOTTIE_ASSISTANT}" autoplay loop class="w-20 h-20 block"></dotlottie-wc>`;
+        log.appendChild(hero);
+        push("bot", "Hi! I'm MagicScript — the assistant living on this site. Ask me what I can do. ✨");
+      }
     }
     requestAnimationFrame(() => {
       panel.classList.remove("opacity-0", "scale-95", "translate-y-8");
