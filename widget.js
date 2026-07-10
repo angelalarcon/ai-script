@@ -1,82 +1,19 @@
 /* MagicScript — drop-in AI chat widget (demo build).
-   Host pages can expose actions via window.MagicScriptActions = { actionName: fn }. */
+   Host pages can expose actions via window.MagicScriptActions = { actionName: fn }.
+   Styling is Tailwind utility classes only (loaded via CDN below) — no hand-written CSS. */
 (function () {
   const STORAGE_KEY = "magicscript-history";
   const CHAT_ENDPOINT = "/api/chat";
+  const POP = "transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none";
 
-  const css = `
-    #ms-btn{position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:9999px;
-      background:#4f46e5;color:#fff;border:none;cursor:pointer;font-size:22px;
-      box-shadow:0 10px 25px rgba(79,70,229,.45);z-index:9999;transition:transform .15s}
-    #ms-btn:hover{transform:scale(1.08)}
-    #ms-panel{position:fixed;bottom:94px;right:24px;width:340px;max-width:calc(100vw - 32px);
-      height:440px;background:#fff;border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.25);
-      display:none;flex-direction:column;overflow:hidden;z-index:9999;
-      font-family:ui-sans-serif,system-ui,sans-serif}
-    #ms-panel.open{display:flex;transform-origin:bottom right;
-      animation:ms-pop .42s cubic-bezier(.34,1.56,.64,1) backwards}
-    #ms-panel.closing{animation:ms-out .18s ease-in forwards}
-    @keyframes ms-pop{from{opacity:0;transform:translateY(36px) scale(.45)}}
-    @keyframes ms-out{to{opacity:0;transform:translateY(24px) scale(.8)}}
-    #ms-panel.open #ms-head{animation:ms-drop .45s .10s cubic-bezier(.34,1.56,.64,1) backwards}
-    #ms-panel.open #ms-form{animation:ms-rise .5s .22s cubic-bezier(.34,1.56,.64,1) backwards}
-    @keyframes ms-drop{from{opacity:0;transform:translateY(-16px)}}
-    @keyframes ms-rise{from{opacity:0;transform:translateY(18px)}}
-    .ms-typing{letter-spacing:3px;animation:ms-pulse 1s ease-in-out infinite !important}
-    @keyframes ms-pulse{0%,100%{opacity:.35}50%{opacity:1}}
-    .ms-msg{animation:ms-msg-in .38s cubic-bezier(.34,1.56,.64,1) backwards}
-    @keyframes ms-msg-in{from{opacity:0;transform:translateY(14px) scale(.9)}}
-    @media (prefers-reduced-motion:reduce){
-      #ms-panel.open,#ms-panel.closing,#ms-panel.open #ms-head,#ms-panel.open #ms-form,.ms-msg{animation:none}}
-    #ms-head{background:#4f46e5;color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px}
-    #ms-head .ms-title{font-weight:600;flex:1;font-size:14px}
-    #ms-head button{background:none;border:none;color:#c7d2fe;cursor:pointer;font-size:14px}
-    #ms-head button:hover{color:#fff}
-    #ms-log{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;background:#f8fafc}
-    .ms-msg{max-width:85%;padding:8px 12px;border-radius:12px;font-size:13px;line-height:1.45;white-space:pre-wrap}
-    .ms-user{align-self:flex-end;background:#4f46e5;color:#fff;border-bottom-right-radius:4px}
-    .ms-bot{align-self:flex-start;background:#e2e8f0;color:#0f172a;border-bottom-left-radius:4px}
-    #ms-form{display:flex;gap:8px;padding:10px;border-top:1px solid #e2e8f0;background:#fff}
-    #ms-input{flex:1;border:1px solid #cbd5e1;border-radius:9999px;padding:8px 14px;font-size:13px;outline:none;
-      background:#fff;color:#0f172a}
-    #ms-input::placeholder{color:#94a3b8}
-    #ms-input:focus{border-color:#4f46e5}
-    #ms-send{background:#4f46e5;color:#fff;border:none;border-radius:9999px;width:36px;height:36px;cursor:pointer}
-
-    #ms-page{position:fixed;inset:0;background:#020617;color:#e2e8f0;z-index:9990;
-      display:none;flex-direction:column;font-family:ui-sans-serif,system-ui,sans-serif}
-    #ms-page.open{display:flex;animation:ms-page-in .25s ease-out}
-    @keyframes ms-page-in{from{opacity:0;transform:translateY(10px)}}
-    #ms-page-head{display:flex;align-items:center;gap:12px;padding:16px 24px;
-      border-bottom:1px solid #1e293b;flex-shrink:0}
-    #ms-page-head .ms-page-icon{color:#818cf8}
-    #ms-page-back{display:inline-flex;align-items:center;gap:6px;background:rgba(79,70,229,.15);
-      color:#a5b4fc;border:none;border-radius:9999px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer}
-    #ms-page-back:hover{background:rgba(79,70,229,.3);color:#fff}
-    #ms-page-title{font-size:15px;font-weight:600;color:#f1f5f9;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    #ms-page-body{flex:1;overflow-y:auto;padding:36px 24px}
-    #ms-page-content{max-width:680px;margin:0 auto}
-    #ms-page-content h1{color:#f1f5f9;font-size:32px;font-weight:800;margin:0 0 12px;line-height:1.2}
-    #ms-page-content h2{color:#f1f5f9;font-size:21px;font-weight:700;margin:28px 0 10px}
-    #ms-page-content h3{color:#f1f5f9;font-size:17px;font-weight:600;margin:20px 0 8px}
-    #ms-page-content p{color:#94a3b8;line-height:1.6}
-    #ms-page-content i.fa-solid,#ms-page-content i.fa-regular{color:#818cf8}
-    #ms-page-content .ms-logo-box{display:inline-block;background:#fff;padding:8px;border-radius:12px;
-      line-height:0;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-    #ms-page-content .ms-logo-box img{display:block;max-height:40px;max-width:160px;object-fit:contain;
-      border-radius:4px;margin:0 !important}
-    #ms-page-content ul,#ms-page-content ol{padding-left:22px;line-height:1.7;color:#cbd5e1}
-    #ms-page-content li{margin-bottom:6px}
-    @media (prefers-reduced-motion:reduce){#ms-page.open{animation:none}}
-  `;
-
-  const style = document.createElement("style");
-  style.textContent = css;
-  document.head.appendChild(style);
-
-  // Ensure Font Awesome is available — the widget's own UI and any AI-generated
-  // views use fa-solid icons, but a host site dropping this script in may not
-  // have loaded the CDN itself.
+  // Load Tailwind (with the typography plugin, for styling AI-generated markup via
+  // `prose`) unless the host page already has its own — avoids running two JIT
+  // instances at once. Load Font Awesome too, since the widget's icons need it.
+  if (!window.tailwind && !document.querySelector('script[src*="cdn.tailwindcss.com"]')) {
+    const tw = document.createElement("script");
+    tw.src = "https://cdn.tailwindcss.com?plugins=typography";
+    document.head.appendChild(tw);
+  }
   if (!document.querySelector('link[href*="font-awesome"]')) {
     const fa = document.createElement("link");
     fa.rel = "stylesheet";
@@ -86,34 +23,53 @@
 
   const btn = document.createElement("button");
   btn.id = "ms-btn";
-  btn.innerHTML = '<img src="logo.svg" alt="MagicScript" class="invert" style="width:34px;height:34px;display:block;margin:auto">';
   btn.title = "Chat with MagicScript";
+  btn.className =
+    "fixed bottom-6 right-6 w-14 h-14 rounded-full bg-indigo-600 text-white border-none " +
+    "cursor-pointer shadow-[0_10px_25px_rgba(79,70,229,0.45)] z-[9999] flex items-center justify-center " +
+    "transition-transform duration-150 hover:scale-110 motion-reduce:transition-none";
+  btn.innerHTML = '<img src="logo.svg" alt="MagicScript" class="invert w-[34px] h-[34px] block">';
 
   const panel = document.createElement("div");
   panel.id = "ms-panel";
+  panel.className =
+    "fixed bottom-[94px] right-6 w-[340px] max-w-[calc(100vw-2rem)] h-[440px] bg-white rounded-2xl " +
+    "shadow-[0_20px_50px_rgba(0,0,0,0.25)] overflow-hidden z-[9999] font-sans flex-col origin-bottom-right " +
+    `${POP} hidden opacity-0 scale-95 translate-y-8`;
   panel.innerHTML = `
-    <div id="ms-head">
+    <div id="ms-head" class="bg-indigo-600 text-white px-4 py-3 flex items-center gap-2.5 flex-shrink-0">
       <i class="fa-solid fa-wand-magic-sparkles"></i>
-      <span class="ms-title">MagicScript</span>
-      <button id="ms-clear" title="Clear history"><i class="fa-solid fa-trash"></i></button>
-      <button id="ms-close" title="Close"><i class="fa-solid fa-xmark"></i></button>
+      <span class="font-semibold flex-1 text-sm">MagicScript</span>
+      <button id="ms-clear" title="Clear history" class="bg-transparent border-none text-indigo-200 cursor-pointer text-sm hover:text-white"><i class="fa-solid fa-trash"></i></button>
+      <button id="ms-close" title="Close" class="bg-transparent border-none text-indigo-200 cursor-pointer text-sm hover:text-white"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <div id="ms-log"></div>
-    <form id="ms-form">
-      <input id="ms-input" autocomplete="off" placeholder="Ask me anything…">
-      <button id="ms-send" type="submit"><i class="fa-solid fa-paper-plane"></i></button>
+    <div id="ms-log" class="flex-1 overflow-y-auto p-3.5 flex flex-col gap-2 bg-slate-50"></div>
+    <form id="ms-form" class="flex gap-2 p-2.5 border-t border-slate-200 bg-white flex-shrink-0">
+      <input id="ms-input" autocomplete="off" placeholder="Ask me anything…"
+        class="flex-1 border border-slate-300 rounded-full px-3.5 py-2 text-sm outline-none bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-600">
+      <button id="ms-send" type="submit" class="bg-indigo-600 text-white border-none rounded-full w-9 h-9 flex items-center justify-center cursor-pointer hover:bg-indigo-700"><i class="fa-solid fa-paper-plane"></i></button>
     </form>
   `;
 
   const page = document.createElement("div");
   page.id = "ms-page";
+  page.className =
+    `fixed inset-0 bg-[#020617] text-slate-200 z-[9990] font-sans flex-col ${POP} ` +
+    "hidden opacity-0 translate-y-2";
   page.innerHTML = `
-    <div id="ms-page-head">
-      <button id="ms-page-back"><i class="fa-solid fa-arrow-left"></i> Back to site</button>
-      <span id="ms-page-title">Generated view</span>
-      <i class="fa-solid fa-wand-magic-sparkles ms-page-icon"></i>
+    <div id="ms-page-head" class="flex items-center gap-3 px-6 py-4 border-b border-slate-800 flex-shrink-0">
+      <button id="ms-page-back" class="inline-flex items-center gap-1.5 bg-indigo-600/15 text-indigo-300 border-none rounded-full px-4 py-2 text-sm font-semibold cursor-pointer hover:bg-indigo-600/30 hover:text-white">
+        <i class="fa-solid fa-arrow-left"></i> Back to site
+      </button>
+      <span id="ms-page-title" class="text-[15px] font-semibold text-slate-100 flex-1 truncate">Generated view</span>
+      <i class="fa-solid fa-wand-magic-sparkles text-indigo-400"></i>
     </div>
-    <div id="ms-page-body"><div id="ms-page-content"></div></div>
+    <div id="ms-page-body" class="flex-1 overflow-y-auto px-6 py-9">
+      <div id="ms-page-content"
+        class="prose prose-invert max-w-[680px] mx-auto prose-headings:text-slate-100
+          prose-h1:text-4xl prose-h1:font-extrabold prose-h2:text-2xl prose-h2:font-bold
+          prose-p:text-slate-400 prose-li:text-slate-300 prose-strong:text-slate-100"></div>
+    </div>
   `;
 
   document.body.appendChild(page);
@@ -124,9 +80,11 @@
   const form = panel.querySelector("#ms-form");
   const input = panel.querySelector("#ms-input");
 
-  // Strips scripts/handlers from AI-generated HTML before it's injected into our
-  // own DOM (we're not using a sandboxed iframe here, so this is defense-in-depth
-  // against the model ever including something it was told not to).
+  // Strips scripts/handlers from AI-generated HTML before it's injected into our own
+  // DOM (no sandboxed iframe here, so this is defense-in-depth), and re-wraps the one
+  // allowed <img> (the fetched brand logo) in a light box with our own Tailwind sizing
+  // classes — a dark logo needs contrast, and this way it's guaranteed regardless of
+  // whatever attributes the model put on the tag.
   function sanitizeHtml(html) {
     return String(html)
       .replace(/<script[\s\S]*?<\/script>/gi, "")
@@ -134,31 +92,52 @@
       .replace(/ on[a-z]+\s*=\s*"[^"]*"/gi, "")
       .replace(/ on[a-z]+\s*=\s*'[^']*'/gi, "")
       .replace(/javascript:/gi, "")
-      // wrap the brand logo (the only <img> the AI is allowed to include) in a
-      // light box, so a dark logo still shows up against our dark theme
-      .replace(/<img\b([^>]*)>/gi, '<span class="ms-logo-box"><img$1></span>');
+      .replace(/<img\b([^>]*)>/gi, (_, attrs) => {
+        const clean = attrs.replace(/\s*style="[^"]*"/gi, "").replace(/\s*class="[^"]*"/gi, "");
+        return `<span class="inline-block bg-white p-2 rounded-xl shadow-md mb-4 not-prose"><img${clean} class="block max-h-10 max-w-[160px] object-contain rounded"></span>`;
+      });
   }
 
-  // Shows the AI-generated view as a full-viewport panel styled to match this
-  // site's theme, layered *below* the chat button/panel (z-index) so the chat
-  // stays visible and usable the whole time — nothing navigates away.
+  // Shows the AI-generated view as a full-viewport panel styled to match this site's
+  // theme, layered *below* the chat button/panel (z-index) so the chat stays visible
+  // and usable the whole time — nothing navigates away.
   function openGeneratedPage(html, title) {
     page.querySelector("#ms-page-title").textContent = title || "Generated view";
     page.querySelector("#ms-page-content").innerHTML = sanitizeHtml(html);
     page.querySelector("#ms-page-body").scrollTop = 0;
-    page.classList.add("open");
+    page.classList.remove("hidden");
+    page.classList.add("flex");
+    requestAnimationFrame(() => {
+      page.classList.remove("opacity-0", "translate-y-2");
+      page.classList.add("opacity-100", "translate-y-0");
+    });
   }
-  page.querySelector("#ms-page-back").addEventListener("click", () => page.classList.remove("open"));
+  function closeGeneratedPage() {
+    page.classList.remove("opacity-100", "translate-y-0");
+    page.classList.add("opacity-0", "translate-y-2");
+    setTimeout(() => { page.classList.remove("flex"); page.classList.add("hidden"); }, 300);
+  }
+  page.querySelector("#ms-page-back").addEventListener("click", closeGeneratedPage);
 
   let history = [];
   try { history = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) {}
 
-  function render(msg) {
+  function render(msg, delayMs) {
     const div = document.createElement("div");
-    div.className = "ms-msg " + (msg.role === "user" ? "ms-user" : "ms-bot");
+    const roleClasses = msg.role === "user"
+      ? "self-end bg-indigo-600 text-white rounded-br-sm"
+      : "self-start bg-slate-200 text-slate-900 rounded-bl-sm";
+    div.className =
+      `max-w-[85%] px-3 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${POP} ` +
+      `${roleClasses} opacity-0 translate-y-3 scale-90`;
+    if (delayMs) div.classList.add(`delay-[${delayMs}ms]`);
     div.textContent = msg.text;
     log.appendChild(div);
     log.scrollTop = log.scrollHeight;
+    requestAnimationFrame(() => {
+      div.classList.remove("opacity-0", "translate-y-3", "scale-90");
+      div.classList.add("opacity-100", "translate-y-0", "scale-100");
+    });
   }
 
   function push(role, text) {
@@ -189,12 +168,13 @@
   }
 
   function showTyping() {
-    const typing = document.createElement("div");
-    typing.className = "ms-msg ms-bot ms-typing";
-    typing.textContent = "•••";
-    log.appendChild(typing);
+    const div = document.createElement("div");
+    div.className =
+      "max-w-[85%] self-start bg-slate-200 text-slate-900 rounded-2xl rounded-bl-sm px-3 py-2 text-sm tracking-widest animate-pulse";
+    div.textContent = "•••";
+    log.appendChild(div);
     log.scrollTop = log.scrollHeight;
-    return typing;
+    return div;
   }
 
   // The AI key lives server-side (Netlify function) — the browser never sees it.
@@ -303,29 +283,28 @@
   }
 
   function openPanel() {
-    panel.classList.remove("closing");
-    panel.classList.add("open");
+    panel.classList.remove("hidden");
+    panel.classList.add("flex");
     if (!log.hasChildNodes()) {
-      history.forEach(render);
+      // stagger each historical message's entrance; live messages (via push) pop in immediately
+      history.forEach((msg, i) => render(msg, Math.min(160 + i * 60, 560)));
       if (!history.length) push("bot", "Hi! I'm MagicScript — the assistant living on this site. Ask me what I can do. ✨");
     }
-    // cascade: replay each message's entrance at a staggered delay
-    Array.from(log.children).forEach((el, i) => {
-      el.style.animation = "none";
-      void el.offsetWidth;
-      el.style.animation = "";
-      el.style.animationDelay = Math.min(160 + i * 60, 560) + "ms";
+    requestAnimationFrame(() => {
+      panel.classList.remove("opacity-0", "scale-95", "translate-y-8");
+      panel.classList.add("opacity-100", "scale-100", "translate-y-0");
     });
     input.focus();
   }
 
   function closePanel() {
-    panel.classList.add("closing");
-    setTimeout(() => panel.classList.remove("open", "closing"), 170);
+    panel.classList.remove("opacity-100", "scale-100", "translate-y-0");
+    panel.classList.add("opacity-0", "scale-95", "translate-y-8");
+    setTimeout(() => { panel.classList.remove("flex"); panel.classList.add("hidden"); }, 300);
   }
 
   btn.addEventListener("click", () => {
-    panel.classList.contains("open") ? closePanel() : openPanel();
+    panel.classList.contains("hidden") ? openPanel() : closePanel();
   });
 
   panel.querySelector("#ms-close").addEventListener("click", closePanel);
