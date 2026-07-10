@@ -200,7 +200,7 @@
       lottie.setAttribute("src", ICON_LOTTIE[key]);
       lottie.setAttribute("autoplay", "");
       lottie.setAttribute("loop", "");
-      lottie.className = "inline-block w-5 h-5 align-[-4px] not-prose";
+      lottie.className = "inline-block w-8 h-8 align-[-10px] not-prose";
       icon.replaceWith(lottie);
     });
 
