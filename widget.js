@@ -80,22 +80,82 @@
   const form = panel.querySelector("#ms-form");
   const input = panel.querySelector("#ms-input");
 
-  // Strips scripts/handlers from AI-generated HTML before it's injected into our own
-  // DOM (no sandboxed iframe here, so this is defense-in-depth), and re-wraps the one
-  // allowed <img> (the fetched brand logo) in a light box with our own Tailwind sizing
-  // classes — a dark logo needs contrast, and this way it's guaranteed regardless of
-  // whatever attributes the model put on the tag.
+  // The model is told to use Tailwind classes only, but LLMs habitually reach for
+  // inline style="" anyway — prompting alone isn't reliable, so this mechanically
+  // converts every inline style declaration it writes into an equivalent Tailwind
+  // arbitrary-value utility class, guaranteeing zero inline CSS reaches the page
+  // regardless of what the model actually produced.
+  function styleToTailwindClasses(styleStr) {
+    const SKIP = new Set(["font-family", "box-shadow", "text-decoration", "overflow"]);
+    const ENUM = {
+      display: { flex: "flex", block: "block", none: "hidden", "inline-block": "inline-block", grid: "grid" },
+      "align-items": { center: "items-center", "flex-start": "items-start", "flex-end": "items-end", baseline: "items-baseline" },
+      "justify-content": { center: "justify-center", "space-between": "justify-between", "flex-start": "justify-start", "flex-end": "justify-end" },
+      "text-align": { center: "text-center", left: "text-left", right: "text-right", end: "text-right", start: "text-left" },
+      "white-space": { nowrap: "whitespace-nowrap", "pre-wrap": "whitespace-pre-wrap", normal: "whitespace-normal" },
+      "list-style": { none: "list-none" },
+      "list-style-type": { none: "list-none" },
+      "object-fit": { contain: "object-contain", cover: "object-cover" },
+    };
+    const PREFIX = {
+      color: "text", background: "bg", "background-color": "bg",
+      "border-radius": "rounded", "border-color": "border",
+      padding: "p", "padding-top": "pt", "padding-right": "pr", "padding-bottom": "pb", "padding-left": "pl",
+      margin: "m", "margin-top": "mt", "margin-right": "mr", "margin-bottom": "mb", "margin-left": "ml",
+      "font-size": "text", "font-weight": "font", "line-height": "leading", "letter-spacing": "tracking",
+      "max-width": "max-w", "min-width": "min-w", width: "w", height: "h",
+      gap: "gap", opacity: "opacity",
+    };
+    const classes = [];
+    String(styleStr).split(";").forEach((decl) => {
+      const idx = decl.indexOf(":");
+      if (idx < 0) return;
+      const prop = decl.slice(0, idx).trim().toLowerCase();
+      const value = decl.slice(idx + 1).trim();
+      if (!prop || !value || SKIP.has(prop)) return;
+      if (prop === "margin" && /^0\s+auto$/.test(value)) { classes.push("mx-auto"); return; }
+      if (prop === "border") {
+        const m = value.match(/solid\s+(.+)$/i);
+        classes.push("border");
+        if (m) classes.push(`border-[${m[1].replace(/\s+/g, "")}]`);
+        return;
+      }
+      if (ENUM[prop] && ENUM[prop][value]) { classes.push(ENUM[prop][value]); return; }
+      if (PREFIX[prop]) classes.push(`${PREFIX[prop]}-[${value.replace(/\s+/g, "_")}]`);
+    });
+    return classes;
+  }
+
   function sanitizeHtml(html) {
-    return String(html)
-      .replace(/<script[\s\S]*?<\/script>/gi, "")
-      .replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
-      .replace(/ on[a-z]+\s*=\s*"[^"]*"/gi, "")
-      .replace(/ on[a-z]+\s*=\s*'[^']*'/gi, "")
-      .replace(/javascript:/gi, "")
-      .replace(/<img\b([^>]*)>/gi, (_, attrs) => {
-        const clean = attrs.replace(/\s*style="[^"]*"/gi, "").replace(/\s*class="[^"]*"/gi, "");
-        return `<span class="inline-block bg-white p-2 rounded-xl shadow-md mb-4 not-prose"><img${clean} class="block max-h-10 max-w-[160px] object-contain rounded"></span>`;
+    const container = document.createElement("div");
+    container.innerHTML = String(html);
+
+    container.querySelectorAll("script, iframe").forEach((el) => el.remove());
+
+    container.querySelectorAll("*").forEach((el) => {
+      [...el.attributes].forEach((attr) => {
+        if (/^on/i.test(attr.name) || /javascript:/i.test(attr.value)) el.removeAttribute(attr.name);
       });
+    });
+
+    // convert every inline style="" into equivalent Tailwind utility classes, then drop it
+    container.querySelectorAll("[style]").forEach((el) => {
+      el.classList.add(...styleToTailwindClasses(el.getAttribute("style")));
+      el.removeAttribute("style");
+    });
+
+    // box the one allowed <img> (brand logo) for contrast against our dark theme,
+    // ignoring whatever sizing/class the model put on it
+    container.querySelectorAll("img").forEach((img) => {
+      img.removeAttribute("style");
+      img.className = "block max-h-10 max-w-[160px] object-contain rounded";
+      const wrap = document.createElement("span");
+      wrap.className = "inline-block bg-white p-2 rounded-xl shadow-md mb-4 not-prose";
+      img.replaceWith(wrap);
+      wrap.appendChild(img);
+    });
+
+    return container.innerHTML;
   }
 
   // Shows the AI-generated view as a full-viewport panel styled to match this site's
