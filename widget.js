@@ -56,14 +56,30 @@
     #ms-page-title{font-size:15px;font-weight:600;color:#f1f5f9;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     #ms-page-body{flex:1;overflow-y:auto;padding:36px 24px}
     #ms-page-content{max-width:680px;margin:0 auto}
-    #ms-page-content h1,#ms-page-content h2{color:#f1f5f9}
+    #ms-page-content h1{color:#f1f5f9;font-size:32px;font-weight:800;margin:0 0 12px;line-height:1.2}
+    #ms-page-content h2{color:#f1f5f9;font-size:21px;font-weight:700;margin:28px 0 10px}
+    #ms-page-content h3{color:#f1f5f9;font-size:17px;font-weight:600;margin:20px 0 8px}
     #ms-page-content p{color:#94a3b8;line-height:1.6}
+    #ms-page-content i.fa-solid,#ms-page-content i.fa-regular{color:#818cf8}
+    #ms-page-content img{max-height:56px;max-width:200px;border-radius:8px;display:block;margin-bottom:16px}
+    #ms-page-content ul,#ms-page-content ol{padding-left:22px;line-height:1.7;color:#cbd5e1}
+    #ms-page-content li{margin-bottom:6px}
     @media (prefers-reduced-motion:reduce){#ms-page.open{animation:none}}
   `;
 
   const style = document.createElement("style");
   style.textContent = css;
   document.head.appendChild(style);
+
+  // Ensure Font Awesome is available — the widget's own UI and any AI-generated
+  // views use fa-solid icons, but a host site dropping this script in may not
+  // have loaded the CDN itself.
+  if (!document.querySelector('link[href*="font-awesome"]')) {
+    const fa = document.createElement("link");
+    fa.rel = "stylesheet";
+    fa.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css";
+    document.head.appendChild(fa);
+  }
 
   const btn = document.createElement("button");
   btn.id = "ms-btn";
