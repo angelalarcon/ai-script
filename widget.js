@@ -61,7 +61,10 @@
     #ms-page-content h3{color:#f1f5f9;font-size:17px;font-weight:600;margin:20px 0 8px}
     #ms-page-content p{color:#94a3b8;line-height:1.6}
     #ms-page-content i.fa-solid,#ms-page-content i.fa-regular{color:#818cf8}
-    #ms-page-content img{max-height:56px;max-width:200px;border-radius:8px;display:block;margin-bottom:16px}
+    #ms-page-content .ms-logo-box{display:inline-block;background:#fff;padding:8px;border-radius:12px;
+      line-height:0;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+    #ms-page-content .ms-logo-box img{display:block;max-height:40px;max-width:160px;object-fit:contain;
+      border-radius:4px;margin:0 !important}
     #ms-page-content ul,#ms-page-content ol{padding-left:22px;line-height:1.7;color:#cbd5e1}
     #ms-page-content li{margin-bottom:6px}
     @media (prefers-reduced-motion:reduce){#ms-page.open{animation:none}}
@@ -130,7 +133,10 @@
       .replace(/<iframe[\s\S]*?<\/iframe>/gi, "")
       .replace(/ on[a-z]+\s*=\s*"[^"]*"/gi, "")
       .replace(/ on[a-z]+\s*=\s*'[^']*'/gi, "")
-      .replace(/javascript:/gi, "");
+      .replace(/javascript:/gi, "")
+      // wrap the brand logo (the only <img> the AI is allowed to include) in a
+      // light box, so a dark logo still shows up against our dark theme
+      .replace(/<img\b([^>]*)>/gi, '<span class="ms-logo-box"><img$1></span>');
   }
 
   // Shows the AI-generated view as a full-viewport panel styled to match this
@@ -219,9 +225,15 @@
         return answer(history[history.length - 1].text);
       }
       const { chat, page: pageHtml, title } = extractPage(data.text);
-      const chatText = runActions(chat);
-      push("bot", chatText || (pageHtml ? "Here's your view! ✨" : "Sorry, I couldn't answer that one."));
-      if (pageHtml) openGeneratedPage(pageHtml, title);
+      const chatText = runActions(chat); // also executes any [[setLanguage:xx]] token as a side effect
+      if (pageHtml) {
+        // the page carries the actual content — keep the chat bubble short regardless
+        // of how long a preamble the model wrote before the <<<MAGICSCRIPT_PAGE>>> block
+        push("bot", "Here's your view! ✨");
+        openGeneratedPage(pageHtml, title);
+      } else {
+        push("bot", chatText || "Sorry, I couldn't answer that one.");
+      }
     } catch (err) {
       typing.remove();
       answer(history[history.length - 1].text);
