@@ -231,9 +231,24 @@
 
     // give every chart breathing room from whatever text precedes it — the model
     // reliably forgets top margin, which crowds a tall bar's value label into the
-    // heading above it
+    // heading above it. overflow-hidden is a safety net: SVG <text> never wraps,
+    // so any stray long label the model adds gets clipped to the chart's own box
+    // instead of bleeding across the rest of the page.
     container.querySelectorAll("svg").forEach((svg) => {
-      svg.classList.add("block", "mt-6");
+      svg.classList.add("block", "mt-6", "overflow-hidden");
+    });
+
+    // a chart title is HTML outside the <svg> per the prompt, but the model
+    // occasionally adds one more <text> inside anyway (e.g. a subtitle) beyond
+    // the baseline/bars/labels it was told to draw — svg text never wraps, so a
+    // long one runs straight off the right edge instead of clipping cleanly.
+    // Structurally a stray title is indistinguishable from a legit category
+    // label (both are plain <text>, direct children of <svg>), so length is the
+    // signal: real category labels ("Before", "Q1 2024") are short; a title-length
+    // string this deep is almost certainly the stray we're guarding against.
+    container.querySelectorAll("svg text:not([data-bar-value])").forEach((t) => {
+      if (t.closest("g[data-bar-group]")) return;
+      if ((t.textContent || "").trim().length > 20) t.remove();
     });
 
     // freeze every bar at zero height/baseline so it can grow in on scroll (see
@@ -403,6 +418,11 @@
   // and usable the whole time — nothing navigates away.
   function openGeneratedPage(html, title) {
     stopLeadGallery();
+    // the overlay covers the whole viewport, but the host page underneath was
+    // still scrollable — its scrollbar sat right next to the overlay's own,
+    // showing two at once. Lock it while the overlay's open, same as any modal.
+    document.documentElement.classList.add("overflow-hidden");
+    document.body.classList.add("overflow-hidden");
     page.querySelector("#ms-page-title").textContent = title || "Generated view";
     const content = page.querySelector("#ms-page-content");
     content.innerHTML = sanitizeHtml(html);
@@ -420,6 +440,8 @@
   }
   function closeGeneratedPage() {
     stopLeadGallery();
+    document.documentElement.classList.remove("overflow-hidden");
+    document.body.classList.remove("overflow-hidden");
     page.classList.remove("opacity-100", "translate-y-0");
     page.classList.add("opacity-0", "translate-y-2");
     setTimeout(() => { page.classList.remove("flex"); page.classList.add("hidden"); }, 300);
@@ -606,8 +628,14 @@
     }
     // always land on the latest message — history.forEach above only scrolls on
     // the very first render; every later reopen needs this too, or it keeps
-    // whatever scroll position the log happened to be left at
+    // whatever scroll position the log happened to be left at. Repeated across
+    // a couple frames since the hero animation / avatar images can still be
+    // settling their layout a moment after this first synchronous read.
     log.scrollTop = log.scrollHeight;
+    requestAnimationFrame(() => {
+      log.scrollTop = log.scrollHeight;
+      requestAnimationFrame(() => { log.scrollTop = log.scrollHeight; });
+    });
     requestAnimationFrame(() => {
       panel.classList.remove("opacity-0", "scale-95", "translate-y-8");
       panel.classList.add("opacity-100", "scale-100", "translate-y-0");
