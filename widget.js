@@ -207,6 +207,14 @@
       icon.classList.add("text-2xl", "align-middle");
     });
 
+    // h2 titles are frequently inside a not-prose card (per our own example
+    // pattern below), which opts that whole subtree OUT of the typography
+    // plugin's prose-h2 sizing — so set the size directly on every h2 instead
+    // of relying on prose scoping that half the time doesn't apply
+    container.querySelectorAll("h2").forEach((h) => {
+      h.classList.add("text-3xl", "font-bold", "text-slate-100");
+    });
+
     // a section heading's leading icon gets a faux-duotone treatment (a faded,
     // slightly larger copy of the same glyph behind the solid one) — real fa-duotone
     // is Font Awesome Pro only and unavailable on the free CDN kit this loads
