@@ -5,21 +5,24 @@
   const STORAGE_KEY = "magicscript-history";
   const CHAT_ENDPOINT = "/api/chat";
   const POP = "transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none";
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // Real, verified LottieFiles assets (fetched and confirmed live):
   const LOTTIE_ASSISTANT = "https://assets-v2.lottiefiles.com/a/f0e4e78a-117f-11ee-a561-9f6d0ded2937/u3HyS9kfe7.lottie";
   const LOTTIE_TYPING = "https://assets-v2.lottiefiles.com/a/b68f0260-1188-11ee-adaf-6fe510d5f86b/X65jJBNW1W.lottie";
-  const LOTTIE_TWINKLE = "https://assets-v2.lottiefiles.com/a/16a9f05c-117e-11ee-a44f-bbc3a3b0353a/T8qErbjQOw.lottie";
-  const LOTTIE_ROCKET = "https://assets-v2.lottiefiles.com/a/05035cea-1164-11ee-9ed5-773b0ece7987/YNiheKxRRj.lottie";
   const LOTTIE_TEAM = "https://assets-v2.lottiefiles.com/a/27103524-3ee9-11f0-89a9-a310fdeaaccb/7oKZIVNWgF.lottie";
-  // Only two icon swaps made the cut — several other candidates I tried (chat,
-  // chart, bolt) rendered nearly blank or with a baked-in white background at
-  // small size, so those icons stay static Font Awesome rather than ship a
-  // broken-looking animation.
+  // Only one icon swap made the cut — several other candidates I tried (chat,
+  // chart, bolt, rocket) rendered nearly blank, with a baked-in white background,
+  // or too small to register at small size, so those icons stay static Font
+  // Awesome rather than ship a broken-looking animation.
   const ICON_LOTTIE = {
-    "fa-rocket": LOTTIE_ROCKET,
     "fa-users": LOTTIE_TEAM,
   };
+
+  // Placeholder headshots standing in for "identified leads/prospects" — used only
+  // by the lead-identification gallery (see startLeadGallery below).
+  const LEAD_AVATARS = Array.from({ length: 14 }, (_, i) => `https://i.pravatar.cc/200?img=${i + 10}`);
+  let leadGalleryTimer = null;
 
   // Load Tailwind (with the typography plugin, for styling AI-generated markup via
   // `prose`) unless the host page already has its own — avoids running two JIT
@@ -204,17 +207,6 @@
       icon.classList.add("text-2xl", "align-middle");
     });
 
-    // every title gets a twinkling sparkle as its entry mark (verified visible on
-    // our dark theme, unlike the wand it replaces)
-    container.querySelectorAll("h1, h2").forEach((h) => {
-      const spark = document.createElement("dotlottie-wc");
-      spark.setAttribute("src", LOTTIE_TWINKLE);
-      spark.setAttribute("autoplay", "");
-      spark.setAttribute("loop", "");
-      spark.className = "inline-block w-11 h-11 align-[-12px] mr-1 not-prose";
-      h.prepend(spark);
-    });
-
     // give every chart breathing room from whatever text precedes it — the model
     // reliably forgets top margin, which crowds a tall bar's value label into the
     // heading above it
@@ -222,7 +214,108 @@
       svg.classList.add("block", "mt-6");
     });
 
+    // freeze every bar at zero height/baseline so it can grow in on scroll
+    // (see startBarObserver, wired up once this markup is live in the DOM) —
+    // skipped entirely under reduced motion, so bars just render at full size
+    if (!reduceMotion) {
+      container.querySelectorAll("rect[data-bar]").forEach((rect) => {
+        const h = parseFloat(rect.getAttribute("height")) || 0;
+        const y = parseFloat(rect.getAttribute("y")) || 0;
+        rect.dataset.targetHeight = h;
+        rect.dataset.targetY = y;
+        rect.setAttribute("height", "0");
+        rect.setAttribute("y", String(y + h));
+        rect.classList.add("transition-all", "duration-700", "ease-[cubic-bezier(0.34,1.56,0.64,1)]");
+      });
+    }
+
+    // the model marks a lead-identification gallery mount point with this empty
+    // marker div (see SYSTEM_PROMPT) — style its container here, then
+    // startLeadGallery (wired up once live in the DOM) does the actual animation
+    container.querySelectorAll("[data-lead-gallery]").forEach((el) => {
+      el.innerHTML = "";
+      el.className = reduceMotion
+        ? "not-prose grid grid-cols-3 sm:grid-cols-6 gap-2 mb-6"
+        : "not-prose relative w-full h-64 md:h-72 rounded-2xl overflow-hidden bg-slate-900/60 border border-slate-800 mb-6";
+    });
+
     return container.innerHTML;
+  }
+
+  // Reveals each bar chart's rects (frozen at zero height by sanitizeHtml) to their
+  // real size once the chart scrolls into view — a one-shot grow-in, not a loop.
+  function startBarObserver(content) {
+    if (reduceMotion) return; // sanitizeHtml left bars at full size — nothing to animate
+    const bars = content.querySelectorAll("rect[data-bar]");
+    if (!bars.length || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const rect = entry.target;
+        rect.setAttribute("height", rect.dataset.targetHeight);
+        rect.setAttribute("y", rect.dataset.targetY);
+        io.unobserve(rect);
+      });
+    }, { threshold: 0.4, root: page.querySelector("#ms-page-body") });
+    bars.forEach((r) => io.observe(r));
+  }
+
+  function pickUniqueAvatar(recent) {
+    let pool = LEAD_AVATARS.filter((u) => !recent.includes(u));
+    if (!pool.length) { recent.length = 0; pool = LEAD_AVATARS; }
+    const src = pool[Math.floor(Math.random() * pool.length)];
+    recent.push(src);
+    if (recent.length > 5) recent.shift();
+    return src;
+  }
+
+  // One floating headshot: fades/scales in at a random spot in the container,
+  // holds briefly, fades/scales out, then removes itself — modeled on OriginKit's
+  // "Image Gallery" crowd effect (https://www.originkit.dev/components/imagegallery).
+  function spawnLeadTile(container, recent) {
+    const w = container.clientWidth || 600;
+    const h = container.clientHeight || 260;
+    const size = Math.round(60 + Math.random() * 50);
+    const x = Math.round(Math.random() * Math.max(0, w - size));
+    const y = Math.round(Math.random() * Math.max(0, h - size));
+    const src = pickUniqueAvatar(recent);
+
+    const tile = document.createElement("div");
+    tile.className =
+      `absolute [left:${x}px] [top:${y}px] [width:${size}px] [height:${size}px] rounded-xl overflow-hidden shadow-lg ` +
+      "opacity-0 scale-75 transition-all duration-700 ease-out";
+    tile.innerHTML = `<img src="${src}" alt="" class="w-full h-full object-cover">`;
+    container.appendChild(tile);
+    requestAnimationFrame(() => {
+      tile.classList.remove("opacity-0", "scale-75");
+      tile.classList.add("opacity-100", "scale-100");
+    });
+    setTimeout(() => {
+      tile.classList.remove("duration-700", "ease-out", "opacity-100", "scale-100");
+      tile.classList.add("duration-500", "ease-in", "opacity-0", "scale-90");
+      setTimeout(() => tile.remove(), 520);
+    }, 1300 + Math.random() * 700);
+  }
+
+  function stopLeadGallery() {
+    if (leadGalleryTimer) { clearInterval(leadGalleryTimer); leadGalleryTimer = null; }
+  }
+
+  function startLeadGallery(el) {
+    if (reduceMotion) {
+      LEAD_AVATARS.slice(0, 6).forEach((src) => {
+        const img = document.createElement("img");
+        img.src = src;
+        img.alt = "";
+        img.className = "w-full h-20 object-cover rounded-lg";
+        el.appendChild(img);
+      });
+      return;
+    }
+    const recent = [];
+    leadGalleryTimer = setInterval(() => {
+      if (el.isConnected && el.children.length < 6) spawnLeadTile(el, recent);
+    }, 450);
   }
 
   // Reveals matched children one after another (fade + rise + scale, staggered by
@@ -248,6 +341,7 @@
   // theme, layered *below* the chat button/panel (z-index) so the chat stays visible
   // and usable the whole time — nothing navigates away.
   function openGeneratedPage(html, title) {
+    stopLeadGallery();
     page.querySelector("#ms-page-title").textContent = title || "Generated view";
     const content = page.querySelector("#ms-page-content");
     content.innerHTML = sanitizeHtml(html);
@@ -259,8 +353,12 @@
       page.classList.add("opacity-100", "translate-y-0");
     });
     staggerReveal(content, "h1, h2, h3, .not-prose, li", 70, 560);
+    startBarObserver(content);
+    const gallery = content.querySelector("[data-lead-gallery]");
+    if (gallery) startLeadGallery(gallery);
   }
   function closeGeneratedPage() {
+    stopLeadGallery();
     page.classList.remove("opacity-100", "translate-y-0");
     page.classList.add("opacity-0", "translate-y-2");
     setTimeout(() => { page.classList.remove("flex"); page.classList.add("hidden"); }, 300);
