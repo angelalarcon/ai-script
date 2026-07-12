@@ -9,7 +9,7 @@
   // Real, verified LottieFiles assets (fetched and confirmed live):
   const LOTTIE_ASSISTANT = "https://assets-v2.lottiefiles.com/a/f0e4e78a-117f-11ee-a561-9f6d0ded2937/u3HyS9kfe7.lottie";
   const LOTTIE_TYPING = "https://assets-v2.lottiefiles.com/a/b68f0260-1188-11ee-adaf-6fe510d5f86b/X65jJBNW1W.lottie";
-  const LOTTIE_WAND = "https://assets-v2.lottiefiles.com/a/02a1a5f2-fd76-11ee-8f60-0360b1002909/zr8eV49ahH.lottie";
+  const LOTTIE_TWINKLE = "https://assets-v2.lottiefiles.com/a/16a9f05c-117e-11ee-a44f-bbc3a3b0353a/T8qErbjQOw.lottie";
   const LOTTIE_ROCKET = "https://assets-v2.lottiefiles.com/a/05035cea-1164-11ee-9ed5-773b0ece7987/YNiheKxRRj.lottie";
   const LOTTIE_TEAM = "https://assets-v2.lottiefiles.com/a/27103524-3ee9-11f0-89a9-a310fdeaaccb/7oKZIVNWgF.lottie";
   // Only two icon swaps made the cut — several other candidates I tried (chat,
@@ -92,7 +92,6 @@
         <i class="fa-solid fa-arrow-left"></i> Back to site
       </button>
       <span id="ms-page-title" class="text-[15px] font-semibold text-slate-100 flex-1 truncate">Generated view</span>
-      <dotlottie-wc src="${LOTTIE_WAND}" autoplay loop class="w-7 h-7 block"></dotlottie-wc>
     </div>
     <div id="ms-page-body" class="flex-1 overflow-y-auto px-6 py-9">
       <div id="ms-page-content"
@@ -179,9 +178,9 @@
     // ignoring whatever sizing/class the model put on it
     container.querySelectorAll("img").forEach((img) => {
       img.removeAttribute("style");
-      img.className = "block max-h-10 max-w-[160px] object-contain rounded";
+      img.className = "block max-h-16 max-w-[220px] object-contain rounded-lg";
       const wrap = document.createElement("span");
-      wrap.className = "inline-block bg-white p-2 rounded-xl shadow-md mb-4 not-prose";
+      wrap.className = "inline-block bg-white p-3 rounded-2xl shadow-md mb-4 not-prose";
       img.replaceWith(wrap);
       wrap.appendChild(img);
     });
@@ -195,8 +194,25 @@
       lottie.setAttribute("src", ICON_LOTTIE[key]);
       lottie.setAttribute("autoplay", "");
       lottie.setAttribute("loop", "");
-      lottie.className = "inline-block w-7 h-7 align-[-8px] not-prose";
+      lottie.className = "inline-block w-9 h-9 align-[-10px] not-prose";
       icon.replaceWith(lottie);
+    });
+
+    // the static Font Awesome icons the model sprinkles through the text read too
+    // small at prose size — bump them so they register as visual anchors
+    container.querySelectorAll("i[class*='fa-']").forEach((icon) => {
+      icon.classList.add("text-2xl", "align-middle");
+    });
+
+    // every title gets a twinkling sparkle as its entry mark (verified visible on
+    // our dark theme, unlike the wand it replaces)
+    container.querySelectorAll("h1, h2").forEach((h) => {
+      const spark = document.createElement("dotlottie-wc");
+      spark.setAttribute("src", LOTTIE_TWINKLE);
+      spark.setAttribute("autoplay", "");
+      spark.setAttribute("loop", "");
+      spark.className = "inline-block w-11 h-11 align-[-12px] mr-1 not-prose";
+      h.prepend(spark);
     });
 
     // give every chart breathing room from whatever text precedes it — the model
