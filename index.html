@@ -10,6 +10,10 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen">
 
+  <!-- Kinetic grid background — fixed + negative z-index keeps it behind every
+       section; pointer-events-none so it never blocks clicks on real content. -->
+  <canvas id="kinetic-grid" class="fixed inset-0 -z-10 pointer-events-none" aria-hidden="true"></canvas>
+
   <!-- Jumbotron -->
   <section class="max-w-4xl mx-auto px-6 pt-28 pb-20 text-center">
     <div class="inline-flex items-center gap-2 bg-indigo-500/10 text-indigo-300 text-sm px-4 py-1.5 rounded-full mb-8">
@@ -212,6 +216,168 @@
         return true;
       }
     };
+  </script>
+
+  <script>
+    // Kinetic grid background — ported from https://www.originkit.dev/components/kineticgrid
+    // (canvas + spring physics, no React needed here) and recolored to the site's indigo theme.
+    (function () {
+      const canvas = document.getElementById("kinetic-grid");
+      const ctx = canvas.getContext("2d");
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const GAP = 30;       // grid spacing, px
+      const R = 380;        // cursor influence radius, px
+      const PULL = (Math.min(10, 4) / 10) * 4; // attraction strength (matches the component's "strength" prop)
+      const DOT_COLOR = "#818cf8";   // indigo-400
+      const LINE_COLOR = "#4f46e5";  // indigo-600 — the site's own accent
+      const TRAIL_COLOR = "#a5b4fc"; // indigo-300
+
+      let W = 0, H = 0;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      let cols = [];
+      let dots = [];
+      const mouse = { x: -9999, y: -9999, active: false };
+      const trail = [];
+
+      function build() {
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = Math.floor(W * dpr);
+        canvas.height = Math.floor(H * dpr);
+        canvas.style.width = W + "px";
+        canvas.style.height = H + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        cols = [];
+        dots = [];
+        const nCols = Math.floor(W / GAP) + 2;
+        const nRows = Math.floor(H / GAP) + 2;
+        for (let c = 0; c < nCols; c++) {
+          const col = [];
+          for (let r = 0; r < nRows; r++) {
+            const hx = c * GAP, hy = r * GAP;
+            const d = { hx, hy, x: hx, y: hy, vx: 0, vy: 0 };
+            col.push(d);
+            dots.push(d);
+          }
+          cols.push(col);
+        }
+      }
+
+      function drawStatic() {
+        ctx.clearRect(0, 0, W, H);
+        ctx.globalAlpha = 0.1;
+        ctx.strokeStyle = LINE_COLOR;
+        ctx.lineWidth = 0.75;
+        for (let c = 0; c < cols.length; c++) {
+          for (let r = 0; r < cols[c].length; r++) {
+            const d = cols[c][r];
+            const right = cols[c + 1] && cols[c + 1][r];
+            const down = cols[c][r + 1];
+            if (right) { ctx.beginPath(); ctx.moveTo(d.hx, d.hy); ctx.lineTo(right.hx, right.hy); ctx.stroke(); }
+            if (down) { ctx.beginPath(); ctx.moveTo(d.hx, d.hy); ctx.lineTo(down.hx, down.hy); ctx.stroke(); }
+          }
+        }
+        ctx.globalAlpha = 0.3;
+        ctx.fillStyle = DOT_COLOR;
+        for (const d of dots) { ctx.beginPath(); ctx.arc(d.hx, d.hy, 1.2, 0, Math.PI * 2); ctx.fill(); }
+        ctx.globalAlpha = 1;
+      }
+
+      build();
+      window.addEventListener("resize", () => { build(); if (reduceMotion) drawStatic(); });
+
+      if (reduceMotion) {
+        drawStatic(); // static mesh only — no cursor tracking, no animation loop
+        return;
+      }
+
+      function setMouse(x, y) {
+        mouse.x = x; mouse.y = y; mouse.active = true;
+        const now = performance.now();
+        trail.push({ x, y, t: now });
+        if (trail.length > 80) trail.shift();
+      }
+      window.addEventListener("mousemove", (e) => setMouse(e.clientX, e.clientY));
+      window.addEventListener("mouseleave", () => { mouse.active = false; mouse.x = -9999; mouse.y = -9999; });
+      window.addEventListener("touchmove", (e) => { const t = e.touches[0]; if (t) setMouse(t.clientX, t.clientY); }, { passive: true });
+      window.addEventListener("touchend", () => { mouse.active = false; });
+
+      function frame() {
+        ctx.clearRect(0, 0, W, H);
+
+        // spring each dot home, plus attraction toward the cursor when in range
+        for (const d of dots) {
+          let ax = (d.hx - d.x) * 0.08;
+          let ay = (d.hy - d.y) * 0.08;
+          if (mouse.active) {
+            const dx = mouse.x - d.x, dy = mouse.y - d.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < R && dist > 0.001) {
+              const f = (1 - dist / R) * PULL;
+              ax += (dx / dist) * f;
+              ay += (dy / dist) * f;
+            }
+          }
+          d.vx = (d.vx + ax) * 0.82;
+          d.vy = (d.vy + ay) * 0.82;
+          d.x += d.vx;
+          d.y += d.vy;
+        }
+
+        // mesh lines — brighten and thicken near the cursor
+        for (let c = 0; c < cols.length; c++) {
+          for (let r = 0; r < cols[c].length; r++) {
+            const d = cols[c][r];
+            const right = cols[c + 1] && cols[c + 1][r];
+            const down = cols[c][r + 1];
+            const prox = mouse.active
+              ? Math.max(0, 1 - Math.sqrt((mouse.x - d.x) ** 2 + (mouse.y - d.y) ** 2) / R)
+              : 0;
+            if (right) {
+              ctx.globalAlpha = 0.05 + prox * 0.6;
+              ctx.strokeStyle = LINE_COLOR;
+              ctx.lineWidth = 0.5 + prox * 1.5;
+              ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(right.x, right.y); ctx.stroke();
+            }
+            if (down) {
+              ctx.globalAlpha = 0.05 + prox * 0.6;
+              ctx.strokeStyle = LINE_COLOR;
+              ctx.lineWidth = 0.5 + prox * 1.5;
+              ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(down.x, down.y); ctx.stroke();
+            }
+          }
+        }
+
+        // dots — grow and brighten near the cursor
+        for (const d of dots) {
+          const prox = mouse.active
+            ? Math.max(0, 1 - Math.sqrt((mouse.x - d.x) ** 2 + (mouse.y - d.y) ** 2) / R)
+            : 0;
+          ctx.globalAlpha = 0.18 + prox * 0.7;
+          ctx.fillStyle = DOT_COLOR;
+          ctx.beginPath(); ctx.arc(d.x, d.y, 0.8 + prox * 2.2, 0, Math.PI * 2); ctx.fill();
+        }
+
+        // fading cursor trail
+        const now = performance.now();
+        ctx.lineCap = "round"; ctx.lineJoin = "round";
+        for (let i = 1; i < trail.length; i++) {
+          const a = trail[i - 1], b = trail[i];
+          const age = now - b.t;
+          if (age > 260) continue;
+          ctx.globalAlpha = Math.max(0, 1 - age / 260) * 0.7;
+          ctx.strokeStyle = TRAIL_COLOR;
+          ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        }
+
+        ctx.globalAlpha = 1;
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    })();
   </script>
   <script src="widget.js"></script>
 </body>
