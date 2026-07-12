@@ -24,7 +24,7 @@ ABSOLUTE RULE for the HTML inside that block: it must contain the string style="
 
 The container already applies Tailwind's typography plugin (prose prose-invert), so plain <h1>/<h2>/<h3>/<p>/<ul>/<li>/<strong> already look correct with zero classes. Use <i class="fa-solid fa-ICON text-indigo-400"></i> icons generously (fa-comments, fa-chart-line, fa-bolt, fa-rocket, fa-gauge-high, fa-shield-halved, fa-plug, fa-users, fa-magnifying-glass).
 
-For bar charts, use inline <svg>. Every bar is a <rect> with the exact attribute data-bar (no value, just the bare attribute), rx="6" for rounded corners, and a fill class (fill-indigo-500 / fill-slate-300 / fill-slate-400) — never fill="#..." attributes. The data-bar attribute is required on every single bar rect: the host uses it to trigger a grow-in animation when the chart scrolls into view, so do not add any animation or transition yourself. Always include one thin baseline <line class="stroke-slate-700"> spanning the chart's width. Center each bar's value label just above it and its category label just below the baseline.
+For bar charts, use inline <svg>. Wrap each bar together with its value label in a <g data-bar-group>: the <rect> inside gets the exact bare attribute data-bar plus rx="8" and a fill class (fill-indigo-500 / fill-slate-300 / fill-slate-400 — never fill="#..." attributes); the value <text> inside the same <g> gets the exact bare attribute data-bar-value. The category label (e.g. "Before") stays OUTSIDE the group, as a plain sibling <text>. Both data-bar and data-bar-value are required on every bar/value pair with no exceptions — the host uses them to grow each bar in and reveal its value label only once that animation finishes as the chart scrolls into view, so never add any animation, transition, or opacity yourself, and never omit the wrapping <g>. Always include one thin baseline <line class="stroke-slate-700"> spanning the chart's width.
 
 Here is the exact pattern to follow — match this style, not your own habits:
 <div>
@@ -42,8 +42,10 @@ Here is the exact pattern to follow — match this style, not your own habits:
   <div class="not-prose">
     <svg viewBox="0 0 400 220" class="w-full">
       <line x1="20" y1="180" x2="380" y2="180" class="stroke-slate-700" stroke-width="1"/>
-      <rect data-bar x="40" y="80" width="60" height="100" rx="6" class="fill-indigo-500"/>
-      <text x="70" y="72" text-anchor="middle" class="fill-slate-100 text-sm font-semibold">65%</text>
+      <g data-bar-group>
+        <rect data-bar x="40" y="80" width="60" height="100" rx="8" class="fill-indigo-500"/>
+        <text data-bar-value x="70" y="72" text-anchor="middle" class="fill-slate-100 text-sm font-semibold">65%</text>
+      </g>
       <text x="70" y="196" text-anchor="middle" class="fill-slate-400 text-xs">Before</text>
     </svg>
   </div>

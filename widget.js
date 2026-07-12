@@ -99,7 +99,7 @@
     <div id="ms-page-body" class="flex-1 overflow-y-auto px-6 py-9">
       <div id="ms-page-content"
         class="prose prose-invert max-w-[680px] mx-auto prose-headings:text-slate-100
-          prose-h1:text-4xl prose-h1:font-extrabold prose-h2:text-2xl prose-h2:font-bold
+          prose-h1:text-4xl prose-h1:font-extrabold prose-h2:text-3xl prose-h2:font-bold
           prose-p:text-slate-400 prose-li:text-slate-300 prose-strong:text-slate-100"></div>
     </div>
   `;
@@ -207,6 +207,20 @@
       icon.classList.add("text-2xl", "align-middle");
     });
 
+    // a section heading's leading icon gets a faux-duotone treatment (a faded,
+    // slightly larger copy of the same glyph behind the solid one) — real fa-duotone
+    // is Font Awesome Pro only and unavailable on the free CDN kit this loads
+    container.querySelectorAll("h2 > i[class*='fa-']:first-child").forEach((icon) => {
+      const glyph = [...icon.classList].find((c) => /^fa-(?!solid$|regular$|brands$)/.test(c));
+      if (!glyph) return;
+      const wrap = document.createElement("span");
+      wrap.className = "relative inline-block w-8 h-8 align-[-8px] mr-1 not-prose";
+      wrap.innerHTML =
+        `<i class="fa-solid ${glyph} absolute inset-0 flex items-center justify-center text-3xl scale-125 text-indigo-400/30"></i>` +
+        `<i class="fa-solid ${glyph} absolute inset-0 flex items-center justify-center text-3xl text-indigo-400"></i>`;
+      icon.replaceWith(wrap);
+    });
+
     // give every chart breathing room from whatever text precedes it — the model
     // reliably forgets top margin, which crowds a tall bar's value label into the
     // heading above it
@@ -214,18 +228,42 @@
       svg.classList.add("block", "mt-6");
     });
 
-    // freeze every bar at zero height/baseline so it can grow in on scroll
-    // (see startBarObserver, wired up once this markup is live in the DOM) —
-    // skipped entirely under reduced motion, so bars just render at full size
+    // freeze every bar at zero height/baseline so it can grow in on scroll (see
+    // startBarObserver, wired up once this markup is live in the DOM). Each bar's
+    // rx rounds all four corners, which looks wrong once it settles at the
+    // baseline — a same-color sibling rect masks just the bottom strip square.
+    // The value label stays hidden until the bar finishes growing. All skipped
+    // under reduced motion, so bars and labels just render at full size/visible.
     if (!reduceMotion) {
-      container.querySelectorAll("rect[data-bar]").forEach((rect) => {
+      container.querySelectorAll("g[data-bar-group] rect[data-bar]").forEach((rect) => {
+        const x = rect.getAttribute("x");
+        const width = rect.getAttribute("width");
         const h = parseFloat(rect.getAttribute("height")) || 0;
         const y = parseFloat(rect.getAttribute("y")) || 0;
+        const r = Math.min(parseFloat(rect.getAttribute("rx")) || 8, h);
+        const fillClass = [...rect.classList].find((c) => c.startsWith("fill-"));
+
         rect.dataset.targetHeight = h;
         rect.dataset.targetY = y;
         rect.setAttribute("height", "0");
         rect.setAttribute("y", String(y + h));
         rect.classList.add("transition-all", "duration-700", "ease-[cubic-bezier(0.34,1.56,0.64,1)]");
+
+        const mask = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        mask.setAttribute("data-bar-mask", "");
+        mask.setAttribute("x", x);
+        mask.setAttribute("width", width);
+        mask.setAttribute("height", "0");
+        mask.setAttribute("y", String(y + h));
+        if (fillClass) mask.classList.add(fillClass);
+        mask.classList.add("transition-all", "duration-700", "ease-[cubic-bezier(0.34,1.56,0.64,1)]");
+        mask.dataset.targetHeight = r;
+        mask.dataset.targetY = y + h - r;
+        rect.insertAdjacentElement("afterend", mask);
+      });
+
+      container.querySelectorAll("[data-bar-value]").forEach((label) => {
+        label.classList.add("opacity-0", "transition-opacity", "duration-300");
       });
     }
 
@@ -236,28 +274,43 @@
       el.innerHTML = "";
       el.className = reduceMotion
         ? "not-prose grid grid-cols-3 sm:grid-cols-6 gap-2 mb-6"
-        : "not-prose relative w-full h-64 md:h-72 rounded-2xl overflow-hidden bg-slate-900/60 border border-slate-800 mb-6";
+        : "not-prose relative w-full h-64 md:h-72 overflow-hidden mb-6";
     });
 
     return container.innerHTML;
   }
 
-  // Reveals each bar chart's rects (frozen at zero height by sanitizeHtml) to their
-  // real size once the chart scrolls into view — a one-shot grow-in, not a loop.
+  // Grows each bar chart's group (frozen at zero height by sanitizeHtml) to its
+  // real size once it scrolls into view — a one-shot grow-in, not a loop — then
+  // reveals that bar's value label once the grow transition actually finishes.
   function startBarObserver(content) {
-    if (reduceMotion) return; // sanitizeHtml left bars at full size — nothing to animate
-    const bars = content.querySelectorAll("rect[data-bar]");
-    if (!bars.length || !("IntersectionObserver" in window)) return;
+    if (reduceMotion) return; // sanitizeHtml left bars/labels at full size — nothing to animate
+    const groups = content.querySelectorAll("g[data-bar-group]");
+    if (!groups.length || !("IntersectionObserver" in window)) return;
     const io = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (!entry.isIntersecting) return;
-        const rect = entry.target;
-        rect.setAttribute("height", rect.dataset.targetHeight);
-        rect.setAttribute("y", rect.dataset.targetY);
-        io.unobserve(rect);
+        io.unobserve(entry.target);
+        const rect = entry.target.querySelector("rect[data-bar]");
+        const mask = entry.target.querySelector("rect[data-bar-mask]");
+        const label = entry.target.querySelector("[data-bar-value]");
+        if (rect) {
+          rect.setAttribute("height", rect.dataset.targetHeight);
+          rect.setAttribute("y", rect.dataset.targetY);
+          if (label) {
+            rect.addEventListener("transitionend", () => {
+              label.classList.remove("opacity-0");
+              label.classList.add("opacity-100");
+            }, { once: true });
+          }
+        }
+        if (mask) {
+          mask.setAttribute("height", mask.dataset.targetHeight);
+          mask.setAttribute("y", mask.dataset.targetY);
+        }
       });
     }, { threshold: 0.4, root: page.querySelector("#ms-page-body") });
-    bars.forEach((r) => io.observe(r));
+    groups.forEach((g) => io.observe(g));
   }
 
   function pickUniqueAvatar(recent) {
@@ -543,6 +596,10 @@
         push("bot", "Hi! I'm MagicScript — the assistant living on this site. Ask me what I can do. ✨");
       }
     }
+    // always land on the latest message — history.forEach above only scrolls on
+    // the very first render; every later reopen needs this too, or it keeps
+    // whatever scroll position the log happened to be left at
+    log.scrollTop = log.scrollHeight;
     requestAnimationFrame(() => {
       panel.classList.remove("opacity-0", "scale-95", "translate-y-8");
       panel.classList.add("opacity-100", "scale-100", "translate-y-0");
