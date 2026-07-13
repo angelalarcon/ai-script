@@ -10,14 +10,6 @@
   // Real, verified LottieFiles assets (fetched and confirmed live):
   const LOTTIE_ASSISTANT = "https://assets-v2.lottiefiles.com/a/f0e4e78a-117f-11ee-a561-9f6d0ded2937/u3HyS9kfe7.lottie";
   const LOTTIE_TYPING = "https://assets-v2.lottiefiles.com/a/b68f0260-1188-11ee-adaf-6fe510d5f86b/X65jJBNW1W.lottie";
-  const LOTTIE_TEAM = "https://assets-v2.lottiefiles.com/a/27103524-3ee9-11f0-89a9-a310fdeaaccb/7oKZIVNWgF.lottie";
-  // Only one icon swap made the cut — several other candidates I tried (chat,
-  // chart, bolt, rocket) rendered nearly blank, with a baked-in white background,
-  // or too small to register at small size, so those icons stay static Font
-  // Awesome rather than ship a broken-looking animation.
-  const ICON_LOTTIE = {
-    "fa-users": LOTTIE_TEAM,
-  };
 
   // Placeholder headshots standing in for "identified leads/prospects" — used only
   // by the lead-identification gallery (see startLeadGallery below).
@@ -188,19 +180,6 @@
       wrap.appendChild(img);
     });
 
-    // swap the icons our own prompt suggests for a matching Lottie animation, so
-    // icons (and the titles that lead with one) are animated, not just static glyphs
-    container.querySelectorAll("i[class*='fa-']").forEach((icon) => {
-      const key = Object.keys(ICON_LOTTIE).find((k) => icon.classList.contains(k));
-      if (!key) return;
-      const lottie = document.createElement("dotlottie-wc");
-      lottie.setAttribute("src", ICON_LOTTIE[key]);
-      lottie.setAttribute("autoplay", "");
-      lottie.setAttribute("loop", "");
-      lottie.className = "inline-block w-9 h-9 align-[-10px] not-prose";
-      icon.replaceWith(lottie);
-    });
-
     // the static Font Awesome icons the model sprinkles through the text read too
     // small at prose size — bump them so they register as visual anchors
     container.querySelectorAll("i[class*='fa-']").forEach((icon) => {
@@ -217,16 +196,25 @@
 
     // a section heading's leading icon gets a faux-duotone treatment (a faded,
     // slightly larger copy of the same glyph behind the solid one) — real fa-duotone
-    // is Font Awesome Pro only and unavailable on the free CDN kit this loads
+    // is Font Awesome Pro only and unavailable on the free CDN kit this loads.
+    // The heading itself becomes a flex row (icon | title) with real gap-4
+    // spacing between them, and the title's own text is pulled into its own
+    // flex item — so on a wrapping title the second line stays in the text's
+    // column instead of flowing back underneath the icon.
     container.querySelectorAll("h2 > i[class*='fa-']:first-child").forEach((icon) => {
       const glyph = [...icon.classList].find((c) => /^fa-(?!solid$|regular$|brands$)/.test(c));
       if (!glyph) return;
+      const h2 = icon.parentElement;
       const wrap = document.createElement("span");
-      wrap.className = "relative inline-block w-8 h-8 align-[-8px] mr-1 not-prose";
+      wrap.className = "relative inline-block w-8 h-8 flex-shrink-0 not-prose";
       wrap.innerHTML =
         `<i class="fa-solid ${glyph} absolute inset-0 flex items-center justify-center text-3xl scale-125 text-indigo-400/30"></i>` +
         `<i class="fa-solid ${glyph} absolute inset-0 flex items-center justify-center text-3xl text-indigo-400"></i>`;
+      const titleWrap = document.createElement("span");
+      while (icon.nextSibling) titleWrap.appendChild(icon.nextSibling);
       icon.replaceWith(wrap);
+      h2.appendChild(titleWrap);
+      h2.classList.add("flex", "items-start", "gap-4");
     });
 
     // give every chart breathing room from whatever text precedes it — the model
