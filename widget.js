@@ -520,6 +520,7 @@
     hero.className = "flex justify-center py-1";
     hero.innerHTML = `<dotlottie-wc src="${LOTTIE_ASSISTANT}" autoplay loop class="w-20 h-20 block"></dotlottie-wc>`;
     log.appendChild(hero);
+    if (bubbleResizeObserver) bubbleResizeObserver.observe(hero);
     push("bot", "Hi! I'm MagicScript — the assistant living on this site. Ask me what I can do. ✨");
   }
 
@@ -608,10 +609,19 @@
   }
 
   // Keeps the log pinned to its latest message regardless of what caused the
-  // change — a new message, a typing indicator, a full conversation swap — since
-  // reacting to the actual DOM mutation is reliable in a way that guessing when
-  // layout has "settled" after append never quite was.
+  // change. Two complementary observers, because each catches a different cause:
+  // MutationObserver reacts to a message being appended/removed; ResizeObserver
+  // reacts to an already-appended bubble's rendered SIZE changing afterward —
+  // which happens because Tailwind's CDN build is a JIT that scans the DOM and
+  // injects CSS for newly-seen classes (like an arbitrary delay-[420ms]) on its
+  // own async schedule. A message can paint briefly unstyled, then jump to its
+  // real padded/rounded size once that CSS lands — a reflow no DOM mutation
+  // occurs for, so MutationObserver alone missed it and the log stayed scrolled
+  // to where "the bottom" was before that jump.
   new MutationObserver(() => { log.scrollTop = log.scrollHeight; }).observe(log, { childList: true, subtree: true });
+  const bubbleResizeObserver = "ResizeObserver" in window
+    ? new ResizeObserver(() => { log.scrollTop = log.scrollHeight; })
+    : null;
 
   function render(msg, delayMs) {
     const div = document.createElement("div");
@@ -625,6 +635,7 @@
     div.textContent = msg.text;
     log.appendChild(div);
     log.scrollTop = log.scrollHeight;
+    if (bubbleResizeObserver) bubbleResizeObserver.observe(div);
     requestAnimationFrame(() => {
       div.classList.remove("opacity-0", "translate-y-3", "scale-90");
       div.classList.add("opacity-100", "translate-y-0", "scale-100");
@@ -673,6 +684,7 @@
     div.innerHTML = `<dotlottie-wc src="${LOTTIE_TYPING}" autoplay loop class="w-10 h-6 block"></dotlottie-wc>`;
     log.appendChild(div);
     log.scrollTop = log.scrollHeight;
+    if (bubbleResizeObserver) bubbleResizeObserver.observe(div);
     return div;
   }
 
@@ -791,7 +803,7 @@
       history.forEach((msg, i) => render(msg, Math.min(160 + i * 60, 560)));
       if (!history.length) showGreeting();
     }
-    log.scrollTop = log.scrollHeight; // the MutationObserver above only fires on later changes
+    log.scrollTop = log.scrollHeight; // the MutationObserver/ResizeObserver above only fire on later changes
     requestAnimationFrame(() => {
       panel.classList.remove("opacity-0", "scale-95", "translate-y-8");
       panel.classList.add("opacity-100", "scale-100", "translate-y-0");
