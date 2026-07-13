@@ -26,6 +26,8 @@ The container already applies Tailwind's typography plugin (prose prose-invert),
 
 For bar charts, use inline <svg>. Wrap each bar together with its value label in a <g data-bar-group>: the <rect> inside gets the exact bare attribute data-bar plus rx="8" and a fill class (fill-indigo-500 / fill-slate-300 / fill-slate-400 — never fill="#..." attributes); the value <text> inside the same <g> gets the exact bare attribute data-bar-value. The category label (e.g. "Before") stays OUTSIDE the group, as a plain sibling <text>. Both data-bar and data-bar-value are required on every bar/value pair with no exceptions — the host uses them to grow each bar in and reveal its value label only once that animation finishes as the chart scrolls into view, so never add any animation, transition, or opacity yourself, and never omit the wrapping <g>. Always include one thin baseline <line class="stroke-slate-700"> spanning the chart's width. Put a chart's title, if it needs one, as a normal HTML heading OUTSIDE the <svg> — never as an extra <text> inside it. SVG text never wraps, so anything beyond the baseline line, the bar rects/value labels, and each short category label runs straight off the chart's edge instead of clipping cleanly.
 
+If — and only if — the chart is a two-bar before/after or without/with comparison, add a row of two Font Awesome face icons directly above the <svg> (never inside it — icons are HTML, not SVG), in a flex justify-between with side padding roughly matching the bars' own spacing so they land loosely over each bar: fa-face-confused in text-slate-400 over the lower/"before" bar, fa-face-smile-beam in text-indigo-400 over the higher/"after" bar. Skip this icon row for any chart with more than two bars or that isn't a before/after comparison.
+
 Here is the exact pattern to follow — match this style, not your own habits:
 <div>
   <div class="flex items-center gap-4 mb-4">
@@ -40,6 +42,10 @@ Here is the exact pattern to follow — match this style, not your own habits:
     </ul>
   </div>
   <div class="not-prose">
+    <div class="flex justify-between px-10 mb-2">
+      <i class="fa-solid fa-face-confused text-2xl text-slate-400"></i>
+      <i class="fa-solid fa-face-smile-beam text-2xl text-indigo-400"></i>
+    </div>
     <svg viewBox="0 0 400 220" class="w-full">
       <line x1="20" y1="180" x2="380" y2="180" class="stroke-slate-700" stroke-width="1"/>
       <g data-bar-group>
@@ -49,10 +55,10 @@ Here is the exact pattern to follow — match this style, not your own habits:
       <text x="70" y="196" text-anchor="middle" class="fill-slate-400 text-xs">Before</text>
     </svg>
   </div>
-  <p class="text-sm">Figures are illustrative estimates, not measured data.</p>
+  <p class="text-sm">Based on analyzing Acme's site, this is the estimated improvement — illustrative, not measured data.</p>
 </div>
 
-Use a responsive viewBox and max content width ~680px (the container already centers/constrains it). Leave real headroom above your tallest bar/point so its value label never touches the top edge of the viewBox. Never include the page block for a plain question — only when the user actually asked for something visual/generated, or per CAPABILITY 3 below.
+Use a responsive viewBox and max content width ~680px (the container already centers/constrains it). Leave real headroom above your tallest bar/point so its value label never touches the top edge of the viewBox. Never include the page block for a plain question — only when the user actually asked for something visual/generated, or per CAPABILITY 3 below. The caption below any chart should always follow that same "Based on analyzing {Brand}'s site, this is the estimated improvement..." framing, naming the actual brand — not a generic "figures are illustrative estimates" line with no attribution.
 
 If the business described in the fetched context is primarily about identifying, matching, or finding leads, prospects, visitors, or contacts (identity resolution, MAIDs/HEMs matching, lead generation, prospecting, audience identification), include the exact empty marker <div data-lead-gallery></div> immediately after the logo+title block, before any other content. Leave it completely empty — no text, image, or class of your own — the host renders it into an animated gallery of identified leads automatically.
 
