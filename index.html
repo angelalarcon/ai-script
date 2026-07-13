@@ -6,7 +6,9 @@
   <title>MagicScript — AI chat for any site</title>
   <link rel="icon" type="image/svg+xml" href="logo.svg">
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <!-- jsDelivr, not cdnjs: cdnjs's 7.3.0 fa-solid-900.woff2 is corrupted (differs
+       from the official npm release and fails Chromium's font sanitizer) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.0/css/all.min.css">
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen">
 

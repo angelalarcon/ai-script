@@ -24,22 +24,14 @@
     tw.src = "https://cdn.tailwindcss.com?plugins=typography";
     document.head.appendChild(tw);
   }
-  if (!document.querySelector('link[href*="font-awesome"]')) {
+  // jsDelivr, not cdnjs: cdnjs's 7.3.0 fa-solid-900.woff2 is corrupted (differs
+  // from the official npm release and fails Chromium's font sanitizer, leaving
+  // every icon as a tofu box). The href check also matches "fontawesome".
+  if (!document.querySelector('link[href*="font-awesome"], link[href*="fontawesome"]')) {
     const fa = document.createElement("link");
     fa.rel = "stylesheet";
-    fa.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css";
+    fa.href = "https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.0/css/all.min.css";
     document.head.appendChild(fa);
-  }
-  // Phosphor Icons — used only for the sentiment faces on before/after charts.
-  // Font Awesome's thin/light face glyphs (fa-face-relieved, fa-face-thinking)
-  // are Pro-exclusive and unavailable on its free CDN kit (verified against its
-  // actual served CSS); Phosphor's "thin" weight is free and gives the same
-  // thin-outline look with real face glyphs, confirmed rendering correctly.
-  if (!document.querySelector('link[href*="phosphor-icons"]')) {
-    const ph = document.createElement("link");
-    ph.rel = "stylesheet";
-    ph.href = "https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css";
-    document.head.appendChild(ph);
   }
   // The dotLottie web component — renders the .lottie animations above via <dotlottie-wc>.
   if (!document.querySelector('script[src*="dotlottie-wc"]')) {
@@ -339,23 +331,29 @@
   }
 
   // fa-face-thinking / fa-face-relieved and Font Awesome's Light/Thin/Sharp
-  // styles don't exist at all on its free CDN kit (Pro-exclusive, verified
-  // against its actual served CSS) — Phosphor Icons ships a genuinely free
-  // "thin" weight instead, confirmed rendering these two real face glyphs.
-  const SENTIMENT_GLYPH = {
-    down: "ph-thin ph-smiley-sad",
-    up: "ph-thin ph-smiley",
+  // styles don't exist in ANY free FA build — verified against the served CSS
+  // of both 6.5.2 and 7.3.0 (Pro-exclusive; the free kits ship only Solid,
+  // Regular, and Brands). These are the same glyphs those Pro icons depict —
+  // the 🤔 thinking-face and 😌 relieved-face — served as monotone SVGs from
+  // the MIT-licensed Fluent Emoji High Contrast set via the Iconify CDN.
+  const SENTIMENT_FACE = {
+    down: "thinking-face",
+    up: "relieved-face",
   };
   // The icon's own color can't be fixed per sentiment direction — the model is
   // free to put either fill class on either bar, so an "up" bar is sometimes
   // the pale fill-slate-300 one, not the dark indigo one, and a fixed light
   // color read as barely-visible on it. Contrast has to follow the bar's
-  // actual fill, whichever bar ends up with it.
+  // actual fill, whichever bar ends up with it. Hex (not a Tailwind class)
+  // because it's baked into the SVG via Iconify's color param.
   const FILL_CONTRAST_ICON = {
-    "fill-indigo-500": "text-white",
-    "fill-slate-300": "text-slate-800",
-    "fill-slate-400": "text-slate-900",
+    "fill-indigo-500": "#ffffff",
+    "fill-slate-300": "#1e293b",
+    "fill-slate-400": "#0f172a",
   };
+  function sentimentIconUrl(face, color) {
+    return `https://api.iconify.design/fluent-emoji-high-contrast/${face}.svg?color=${encodeURIComponent(color)}`;
+  }
 
   // Places a face icon INSIDE a bar's own rendered rectangle, computed from real
   // pixel geometry (the svg's viewBox-to-screen scale) rather than approximated
@@ -366,12 +364,12 @@
   // regardless of animation state.
   function placeSentimentIcon(group) {
     const sentiment = group.getAttribute("data-sentiment");
-    const glyph = SENTIMENT_GLYPH[sentiment];
+    const face = SENTIMENT_FACE[sentiment];
     const rect = group.querySelector("rect[data-bar]");
     const svg = group.ownerSVGElement;
-    if (!glyph || !rect || !svg) return null;
+    if (!face || !rect || !svg) return null;
     const fillClass = [...rect.classList].find((c) => c.startsWith("fill-"));
-    const color = FILL_CONTRAST_ICON[fillClass] || "text-slate-800";
+    const color = FILL_CONTRAST_ICON[fillClass] || "#1e293b";
     const container = svg.parentElement;
     const svgBox = svg.getBoundingClientRect();
     const containerBox = container.getBoundingClientRect();
@@ -386,10 +384,12 @@
     const left = Math.round((svgBox.left - containerBox.left) + (centerXsvg - vb.x) * scaleX);
     const top = Math.round((svgBox.top - containerBox.top) + (targetY - vb.y) * scaleY + 14);
 
-    const icon = document.createElement("i");
+    const icon = document.createElement("img");
+    icon.src = sentimentIconUrl(face, color);
+    icon.alt = sentiment === "up" ? "relieved face" : "thinking face";
     icon.className =
-      `${glyph} ${color} absolute [left:${left}px] [top:${top}px] -translate-x-1/2 ` +
-      "text-2xl opacity-0 transition-opacity duration-300 not-prose";
+      `absolute [left:${left}px] [top:${top}px] -translate-x-1/2 w-6 h-6 ` +
+      "opacity-0 transition-opacity duration-300 not-prose";
     container.appendChild(icon);
     return icon;
   }
