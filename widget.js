@@ -30,6 +30,17 @@
     fa.href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css";
     document.head.appendChild(fa);
   }
+  // Phosphor Icons — used only for the sentiment faces on before/after charts.
+  // Font Awesome's thin/light face glyphs (fa-face-relieved, fa-face-thinking)
+  // are Pro-exclusive and unavailable on its free CDN kit (verified against its
+  // actual served CSS); Phosphor's "thin" weight is free and gives the same
+  // thin-outline look with real face glyphs, confirmed rendering correctly.
+  if (!document.querySelector('link[href*="phosphor-icons"]')) {
+    const ph = document.createElement("link");
+    ph.rel = "stylesheet";
+    ph.href = "https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css";
+    document.head.appendChild(ph);
+  }
   // The dotLottie web component — renders the .lottie animations above via <dotlottie-wc>.
   if (!document.querySelector('script[src*="dotlottie-wc"]')) {
     const dl = document.createElement("script");
@@ -327,14 +338,13 @@
     return container.innerHTML;
   }
 
-  // fa-face-thinking / fa-face-relieved and the Light/Thin/Sharp styles the model
-  // was once asked for don't exist at all on the free Font Awesome CDN kit this
-  // loads (verified against its actual served CSS) — Regular is the free style
-  // that reads lightest/thinnest, so these keep the same glyphs already
-  // confirmed to render (fa-face-frown / fa-face-smile-beam) in that weight.
+  // fa-face-thinking / fa-face-relieved and Font Awesome's Light/Thin/Sharp
+  // styles don't exist at all on its free CDN kit (Pro-exclusive, verified
+  // against its actual served CSS) — Phosphor Icons ships a genuinely free
+  // "thin" weight instead, confirmed rendering these two real face glyphs.
   const SENTIMENT_GLYPH = {
-    down: "fa-regular fa-face-frown",
-    up: "fa-regular fa-face-smile-beam",
+    down: "ph-thin ph-smiley-sad",
+    up: "ph-thin ph-smiley",
   };
   // The icon's own color can't be fixed per sentiment direction — the model is
   // free to put either fill class on either bar, so an "up" bar is sometimes
