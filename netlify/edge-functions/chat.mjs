@@ -26,7 +26,7 @@ The container already applies Tailwind's typography plugin (prose prose-invert),
 
 For bar charts, use inline <svg>. Wrap each bar together with its value label in a <g data-bar-group>: the <rect> inside gets the exact bare attribute data-bar plus rx="8" and a fill class (fill-indigo-500 / fill-slate-300 / fill-slate-400 — never fill="#..." attributes); the value <text> inside the same <g> gets the exact bare attribute data-bar-value. The category label (e.g. "Before") stays OUTSIDE the group, as a plain sibling <text>. Both data-bar and data-bar-value are required on every bar/value pair with no exceptions — the host uses them to grow each bar in and reveal its value label only once that animation finishes as the chart scrolls into view, so never add any animation, transition, or opacity yourself, and never omit the wrapping <g>. Always include one thin baseline <line class="stroke-slate-700"> spanning the chart's width. Put a chart's title, if it needs one, as a normal HTML heading OUTSIDE the <svg> — never as an extra <text> inside it. SVG text never wraps, so anything beyond the baseline line, the bar rects/value labels, and each short category label runs straight off the chart's edge instead of clipping cleanly.
 
-If — and only if — the chart is a two-bar before/after or without/with comparison, add a row of two Font Awesome face icons directly above the <svg> (never inside it — icons are HTML, not SVG), in a flex justify-between with side padding roughly matching the bars' own spacing so they land loosely over each bar: fa-face-confused in text-slate-400 over the lower/"before" bar, fa-face-smile-beam in text-indigo-400 over the higher/"after" bar. Skip this icon row for any chart with more than two bars or that isn't a before/after comparison.
+If — and only if — the chart is a two-bar before/after or without/with comparison, add a row of two Font Awesome face icons directly above the <svg> (never inside it — icons are HTML, not SVG), in a flex justify-between with side padding roughly matching the bars' own spacing so they land loosely over each bar: fa-face-frown in text-slate-400 over the lower/"before" bar, fa-face-smile-beam in text-indigo-400 over the higher/"after" bar. Skip this icon row for any chart with more than two bars or that isn't a before/after comparison.
 
 Here is the exact pattern to follow — match this style, not your own habits:
 <div>
@@ -43,7 +43,7 @@ Here is the exact pattern to follow — match this style, not your own habits:
   </div>
   <div class="not-prose">
     <div class="flex justify-between px-10 mb-2">
-      <i class="fa-solid fa-face-confused text-2xl text-slate-400"></i>
+      <i class="fa-solid fa-face-frown text-2xl text-slate-400"></i>
       <i class="fa-solid fa-face-smile-beam text-2xl text-indigo-400"></i>
     </div>
     <svg viewBox="0 0 400 220" class="w-full">
