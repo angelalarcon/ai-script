@@ -238,6 +238,9 @@
     // instead of bleeding across the rest of the page.
     container.querySelectorAll("svg").forEach((svg) => {
       svg.classList.add("block", "mt-6", "overflow-hidden");
+      // establishes the containing block for the sentiment face icons
+      // (see placeSentimentIcons) that get absolutely positioned over it later
+      if (svg.parentElement) svg.parentElement.classList.add("relative");
     });
 
     // a chart title is HTML outside the <svg> per the prompt, but the model
@@ -305,6 +308,64 @@
     return container.innerHTML;
   }
 
+  // fa-face-thinking / fa-face-relieved and the Light/Thin/Sharp styles the model
+  // was once asked for don't exist at all on the free Font Awesome CDN kit this
+  // loads (verified against its actual served CSS) — Regular is the free style
+  // that reads lightest/thinnest, so these keep the same glyphs already
+  // confirmed to render (fa-face-frown / fa-face-smile-beam) in that weight.
+  const SENTIMENT_ICON = {
+    down: { icon: "fa-regular fa-face-frown", color: "text-slate-300" },
+    up: { icon: "fa-regular fa-face-smile-beam", color: "text-white" },
+  };
+
+  // Places a face icon INSIDE a bar's own rendered rectangle, computed from real
+  // pixel geometry (the svg's viewBox-to-screen scale) rather than approximated
+  // with CSS alongside it — the two bars in a before/after chart are rarely the
+  // same height, so no fixed layout could land "inside" both at once reliably.
+  // Uses each bar's stored *target* geometry, not its live (possibly still
+  // mid-grow-in) attributes, so the icon's position is correct immediately
+  // regardless of animation state.
+  function placeSentimentIcon(group) {
+    const sentiment = group.getAttribute("data-sentiment");
+    const config = SENTIMENT_ICON[sentiment];
+    const rect = group.querySelector("rect[data-bar]");
+    const svg = group.ownerSVGElement;
+    if (!config || !rect || !svg) return null;
+    const container = svg.parentElement;
+    const svgBox = svg.getBoundingClientRect();
+    const containerBox = container.getBoundingClientRect();
+    const vb = svg.viewBox.baseVal;
+    if (!vb || !vb.width || !vb.height) return null;
+    const scaleX = svgBox.width / vb.width;
+    const scaleY = svgBox.height / vb.height;
+    const barX = parseFloat(rect.getAttribute("x")) || 0;
+    const barW = parseFloat(rect.getAttribute("width")) || 0;
+    const targetY = parseFloat(rect.dataset.targetY ?? rect.getAttribute("y")) || 0;
+    const centerXsvg = barX + barW / 2;
+    const left = Math.round((svgBox.left - containerBox.left) + (centerXsvg - vb.x) * scaleX);
+    const top = Math.round((svgBox.top - containerBox.top) + (targetY - vb.y) * scaleY + 14);
+
+    const icon = document.createElement("i");
+    icon.className =
+      `${config.icon} ${config.color} absolute [left:${left}px] [top:${top}px] -translate-x-1/2 ` +
+      "text-2xl opacity-0 transition-opacity duration-300 not-prose";
+    container.appendChild(icon);
+    return icon;
+  }
+
+  // Creates every sentiment icon up front (geometry only depends on each bar's
+  // final target position, not its current animated state) but leaves it at
+  // opacity-0 — startBarObserver reveals it in step with that specific bar
+  // finishing its grow-in, or immediately here under reduced motion.
+  function placeSentimentIcons(content) {
+    content.querySelectorAll("g[data-bar-group][data-sentiment]").forEach((group) => {
+      const icon = placeSentimentIcon(group);
+      if (!icon) return;
+      group.sentimentIconEl = icon;
+      if (reduceMotion) icon.classList.remove("opacity-0");
+    });
+  }
+
   // Grows each bar chart's group (frozen at zero height by sanitizeHtml) to its
   // real size once it scrolls into view — a one-shot grow-in, not a loop — then
   // reveals that bar's value label once the grow transition actually finishes.
@@ -322,12 +383,10 @@
         if (rect) {
           rect.setAttribute("height", rect.dataset.targetHeight);
           rect.setAttribute("y", rect.dataset.targetY);
-          if (label) {
-            rect.addEventListener("transitionend", () => {
-              label.classList.remove("opacity-0");
-              label.classList.add("opacity-100");
-            }, { once: true });
-          }
+          rect.addEventListener("transitionend", () => {
+            if (label) { label.classList.remove("opacity-0"); label.classList.add("opacity-100"); }
+            if (entry.target.sentimentIconEl) entry.target.sentimentIconEl.classList.remove("opacity-0");
+          }, { once: true });
         }
         if (mask) {
           mask.setAttribute("height", mask.dataset.targetHeight);
@@ -437,6 +496,7 @@
     });
     staggerReveal(content, "h1, h2, h3, .not-prose, li", 70, 560);
     startBarObserver(content);
+    placeSentimentIcons(content);
     const gallery = content.querySelector("[data-lead-gallery]");
     if (gallery) startLeadGallery(gallery);
   }
