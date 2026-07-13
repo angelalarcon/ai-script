@@ -200,6 +200,16 @@
       icon.classList.add("text-2xl", "align-middle");
     });
 
+    // a benefit list item's leading icon: the model's own gap-3/items-start
+    // (from the pattern below) reads too tight once the icon is enlarged above,
+    // and compliance with even that varies — enforced directly on every such
+    // <li> instead, replacing whatever spacing/alignment classes it wrote
+    container.querySelectorAll("li > i[class*='fa-']:first-child").forEach((icon) => {
+      const li = icon.parentElement;
+      li.classList.remove(...[...li.classList].filter((c) => /^(gap|items)-/.test(c)));
+      li.classList.add("flex", "items-start", "gap-4");
+    });
+
     // h2 titles are frequently inside a not-prose card (per our own example
     // pattern below), which opts that whole subtree OUT of the typography
     // plugin's prose-h2 sizing — so set the size directly on every h2 instead
@@ -254,6 +264,15 @@
     container.querySelectorAll("svg text:not([data-bar-value])").forEach((t) => {
       if (t.closest("g[data-bar-group]")) return;
       if ((t.textContent || "").trim().length > 20) t.remove();
+    });
+
+    // a value label sits above its bar on the dark page background, never on
+    // top of the bar itself, so it must always stay bright — but the model
+    // sometimes matches its fill to the bar's own color instead of the
+    // prescribed bright one, which reads as barely-visible gray-on-dark
+    container.querySelectorAll("[data-bar-value]").forEach((label) => {
+      label.classList.remove(...[...label.classList].filter((c) => c.startsWith("fill-")));
+      label.classList.add("fill-slate-100");
     });
 
     // freeze every bar at zero height/baseline so it can grow in on scroll (see
@@ -313,9 +332,19 @@
   // loads (verified against its actual served CSS) — Regular is the free style
   // that reads lightest/thinnest, so these keep the same glyphs already
   // confirmed to render (fa-face-frown / fa-face-smile-beam) in that weight.
-  const SENTIMENT_ICON = {
-    down: { icon: "fa-regular fa-face-frown", color: "text-slate-300" },
-    up: { icon: "fa-regular fa-face-smile-beam", color: "text-white" },
+  const SENTIMENT_GLYPH = {
+    down: "fa-regular fa-face-frown",
+    up: "fa-regular fa-face-smile-beam",
+  };
+  // The icon's own color can't be fixed per sentiment direction — the model is
+  // free to put either fill class on either bar, so an "up" bar is sometimes
+  // the pale fill-slate-300 one, not the dark indigo one, and a fixed light
+  // color read as barely-visible on it. Contrast has to follow the bar's
+  // actual fill, whichever bar ends up with it.
+  const FILL_CONTRAST_ICON = {
+    "fill-indigo-500": "text-white",
+    "fill-slate-300": "text-slate-800",
+    "fill-slate-400": "text-slate-900",
   };
 
   // Places a face icon INSIDE a bar's own rendered rectangle, computed from real
@@ -327,10 +356,12 @@
   // regardless of animation state.
   function placeSentimentIcon(group) {
     const sentiment = group.getAttribute("data-sentiment");
-    const config = SENTIMENT_ICON[sentiment];
+    const glyph = SENTIMENT_GLYPH[sentiment];
     const rect = group.querySelector("rect[data-bar]");
     const svg = group.ownerSVGElement;
-    if (!config || !rect || !svg) return null;
+    if (!glyph || !rect || !svg) return null;
+    const fillClass = [...rect.classList].find((c) => c.startsWith("fill-"));
+    const color = FILL_CONTRAST_ICON[fillClass] || "text-slate-800";
     const container = svg.parentElement;
     const svgBox = svg.getBoundingClientRect();
     const containerBox = container.getBoundingClientRect();
@@ -347,7 +378,7 @@
 
     const icon = document.createElement("i");
     icon.className =
-      `${config.icon} ${config.color} absolute [left:${left}px] [top:${top}px] -translate-x-1/2 ` +
+      `${glyph} ${color} absolute [left:${left}px] [top:${top}px] -translate-x-1/2 ` +
       "text-2xl opacity-0 transition-opacity duration-300 not-prose";
     container.appendChild(icon);
     return icon;
