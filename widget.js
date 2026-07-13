@@ -397,35 +397,46 @@
     });
   }
 
-  // Grows each bar chart's group (frozen at zero height by sanitizeHtml) to its
-  // real size once it scrolls into view — a one-shot grow-in, not a loop — then
-  // reveals that bar's value label once the grow transition actually finishes.
+  function growBar(group) {
+    const rect = group.querySelector("rect[data-bar]");
+    const mask = group.querySelector("rect[data-bar-mask]");
+    const label = group.querySelector("[data-bar-value]");
+    if (rect) {
+      rect.setAttribute("height", rect.dataset.targetHeight);
+      rect.setAttribute("y", rect.dataset.targetY);
+      rect.addEventListener("transitionend", () => {
+        if (label) { label.classList.remove("opacity-0"); label.classList.add("opacity-100"); }
+        if (group.sentimentIconEl) group.sentimentIconEl.classList.remove("opacity-0");
+      }, { once: true });
+    }
+    if (mask) {
+      mask.setAttribute("height", mask.dataset.targetHeight);
+      mask.setAttribute("y", mask.dataset.targetY);
+    }
+  }
+
+  // Grows every bar in a chart together once it scrolls into view — a one-shot
+  // grow-in, not a loop — then reveals each bar's value label once ITS OWN grow
+  // transition finishes. Observes the whole <svg> as a single intersection
+  // target rather than each bar-group individually: two bars of very different
+  // heights cross a 40%-of-self-visible threshold at different scroll
+  // positions, so watching them separately meant the taller one started
+  // growing well before the shorter one instead of both starting together.
   function startBarObserver(content) {
     if (reduceMotion) return; // sanitizeHtml left bars/labels at full size — nothing to animate
-    const groups = content.querySelectorAll("g[data-bar-group]");
-    if (!groups.length || !("IntersectionObserver" in window)) return;
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        io.unobserve(entry.target);
-        const rect = entry.target.querySelector("rect[data-bar]");
-        const mask = entry.target.querySelector("rect[data-bar-mask]");
-        const label = entry.target.querySelector("[data-bar-value]");
-        if (rect) {
-          rect.setAttribute("height", rect.dataset.targetHeight);
-          rect.setAttribute("y", rect.dataset.targetY);
-          rect.addEventListener("transitionend", () => {
-            if (label) { label.classList.remove("opacity-0"); label.classList.add("opacity-100"); }
-            if (entry.target.sentimentIconEl) entry.target.sentimentIconEl.classList.remove("opacity-0");
-          }, { once: true });
-        }
-        if (mask) {
-          mask.setAttribute("height", mask.dataset.targetHeight);
-          mask.setAttribute("y", mask.dataset.targetY);
-        }
-      });
-    }, { threshold: 0.4, root: page.querySelector("#ms-page-body") });
-    groups.forEach((g) => io.observe(g));
+    if (!("IntersectionObserver" in window)) return;
+    content.querySelectorAll("svg").forEach((svg) => {
+      const groups = svg.querySelectorAll("g[data-bar-group]");
+      if (!groups.length) return;
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          io.unobserve(entry.target);
+          groups.forEach((group) => growBar(group));
+        });
+      }, { threshold: 0.4, root: page.querySelector("#ms-page-body") });
+      io.observe(svg);
+    });
   }
 
   function pickUniqueAvatar(recent) {
