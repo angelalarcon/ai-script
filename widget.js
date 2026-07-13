@@ -61,14 +61,28 @@
     "fixed bottom-[94px] right-6 w-[340px] max-w-[calc(100vw-2rem)] h-[440px] bg-white rounded-2xl " +
     "shadow-[0_20px_50px_rgba(0,0,0,0.25)] overflow-hidden z-[9999] font-sans flex-col origin-bottom-right " +
     `${POP} hidden opacity-0 scale-95 translate-y-8`;
+  const HEAD_BTN =
+    "bg-transparent border-none text-indigo-200 cursor-pointer text-sm hover:text-white " +
+    "transition-transform duration-150 active:scale-75 motion-reduce:transition-none";
   panel.innerHTML = `
     <div id="ms-head" class="bg-indigo-600 text-white px-4 py-3 flex items-center gap-2.5 flex-shrink-0">
       <i class="fa-solid fa-wand-magic-sparkles"></i>
-      <span class="font-semibold flex-1 text-sm">MagicScript</span>
-      <button id="ms-clear" title="Clear history" class="bg-transparent border-none text-indigo-200 cursor-pointer text-sm hover:text-white transition-transform duration-150 active:scale-75 motion-reduce:transition-none"><i class="fa-solid fa-trash"></i></button>
-      <button id="ms-close" title="Close" class="bg-transparent border-none text-indigo-200 cursor-pointer text-sm hover:text-white transition-transform duration-150 active:scale-75 motion-reduce:transition-none"><i class="fa-solid fa-xmark"></i></button>
+      <span class="font-semibold flex-1 text-sm truncate">MagicScript</span>
+      <button id="ms-new" title="New chat" class="${HEAD_BTN}"><i class="fa-solid fa-pen-to-square"></i></button>
+      <button id="ms-history-btn" title="Previous conversations" class="${HEAD_BTN}"><i class="fa-solid fa-clock-rotate-left"></i></button>
+      <button id="ms-clear" title="Delete all conversations" class="${HEAD_BTN}"><i class="fa-solid fa-trash"></i></button>
+      <button id="ms-close" title="Close" class="${HEAD_BTN}"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <div id="ms-log" class="flex-1 overflow-y-auto p-3.5 flex flex-col gap-2 bg-slate-50"></div>
+    <div class="relative flex-1 overflow-hidden">
+      <div id="ms-log" class="absolute inset-0 overflow-y-auto p-3.5 flex flex-col gap-2 bg-slate-50"></div>
+      <div id="ms-history" class="absolute inset-0 bg-white flex-col hidden">
+        <div class="flex items-center gap-2 px-3.5 py-2.5 border-b border-slate-200 flex-shrink-0">
+          <button id="ms-history-back" class="bg-transparent border-none text-slate-500 cursor-pointer text-sm hover:text-slate-800 transition-transform duration-150 active:scale-75 motion-reduce:transition-none"><i class="fa-solid fa-arrow-left"></i></button>
+          <span class="text-sm font-semibold text-slate-700 flex-1">Previous conversations</span>
+        </div>
+        <div id="ms-history-list" class="flex-1 overflow-y-auto p-2 flex flex-col gap-1.5"></div>
+      </div>
+    </div>
     <form id="ms-form" class="flex gap-2 p-2.5 border-t border-slate-200 bg-white flex-shrink-0">
       <input id="ms-input" autocomplete="off" placeholder="Ask me anything…"
         class="flex-1 border border-slate-300 rounded-full px-3.5 py-2 text-sm outline-none bg-white text-slate-900 placeholder:text-slate-400 focus:border-indigo-600">
@@ -436,8 +450,168 @@
   }
   page.querySelector("#ms-page-back").addEventListener("click", closeGeneratedPage);
 
-  let history = [];
-  try { history = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch (e) {}
+  const CONV_KEY = "magicscript-conversations";
+  const ACTIVE_KEY = "magicscript-active-id";
+
+  function genId() {
+    return "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  function deriveTitle(messages) {
+    const firstUser = messages.find((m) => m.role === "user");
+    const text = (firstUser && firstUser.text) || "New chat";
+    return text.length > 40 ? text.slice(0, 40) + "…" : text;
+  }
+
+  function timeAgo(ts) {
+    const s = Math.max(1, Math.floor((Date.now() - ts) / 1000));
+    if (s < 60) return "just now";
+    const m = Math.floor(s / 60); if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60); if (h < 24) return `${h}h ago`;
+    const d = Math.floor(h / 24); if (d < 30) return `${d}d ago`;
+    return new Date(ts).toLocaleDateString();
+  }
+
+  // One conversation per "New chat" click: {id, title, messages, updatedAt}. The
+  // old single-thread format (a flat message array under one key) migrates into
+  // this on first load rather than losing a returning visitor's history.
+  function loadConversations() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(CONV_KEY));
+      if (Array.isArray(raw)) return raw;
+    } catch (e) {}
+    try {
+      const legacy = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (Array.isArray(legacy) && legacy.length) {
+        localStorage.removeItem(STORAGE_KEY);
+        return [{ id: genId(), title: deriveTitle(legacy), messages: legacy, updatedAt: Date.now() }];
+      }
+    } catch (e) {}
+    return [];
+  }
+
+  function saveConversations() {
+    localStorage.setItem(CONV_KEY, JSON.stringify(conversations));
+    localStorage.setItem(ACTIVE_KEY, activeId);
+  }
+
+  let conversations = loadConversations();
+  // persist a migration immediately — if we only kept it in memory, a visitor
+  // who leaves without sending a new message would lose it on their next visit,
+  // since the old key is already gone and the new one was never actually written
+  localStorage.setItem(CONV_KEY, JSON.stringify(conversations));
+  let activeId = localStorage.getItem(ACTIVE_KEY);
+  let active = conversations.find((c) => c.id === activeId);
+  if (!active) {
+    // not unshifted into `conversations` yet — see push(), which only archives
+    // a conversation once it actually has a real user message in it
+    active = conversations[0] || { id: genId(), title: null, messages: [], updatedAt: Date.now() };
+    activeId = active.id;
+    if (conversations.includes(active)) localStorage.setItem(ACTIVE_KEY, activeId);
+  }
+  let history = active.messages;
+
+  function showGreeting() {
+    const hero = document.createElement("div");
+    hero.className = "flex justify-center py-1";
+    hero.innerHTML = `<dotlottie-wc src="${LOTTIE_ASSISTANT}" autoplay loop class="w-20 h-20 block"></dotlottie-wc>`;
+    log.appendChild(hero);
+    push("bot", "Hi! I'm MagicScript — the assistant living on this site. Ask me what I can do. ✨");
+  }
+
+  function renderConversation() {
+    log.innerHTML = "";
+    history.forEach((msg, i) => render(msg, Math.min(i * 40, 400)));
+    if (!history.length) showGreeting();
+  }
+
+  function newChat() {
+    active = { id: genId(), title: null, messages: [], updatedAt: Date.now() };
+    activeId = active.id;
+    history = active.messages;
+    localStorage.setItem(ACTIVE_KEY, activeId);
+    renderConversation();
+    closeHistoryOverlay();
+  }
+
+  function switchConversation(id) {
+    const conv = conversations.find((c) => c.id === id);
+    if (!conv || conv === active) { closeHistoryOverlay(); return; }
+    active = conv;
+    activeId = conv.id;
+    history = active.messages;
+    localStorage.setItem(ACTIVE_KEY, activeId);
+    renderConversation();
+    closeHistoryOverlay();
+  }
+
+  function deleteConversation(id) {
+    conversations = conversations.filter((c) => c.id !== id);
+    saveConversations();
+    if (id === activeId) {
+      if (conversations.length) switchConversation(conversations[0].id);
+      else newChat();
+    }
+    renderHistoryList();
+  }
+
+  function renderHistoryList() {
+    const list = panel.querySelector("#ms-history-list");
+    list.innerHTML = "";
+    const sorted = [...conversations].sort((a, b) => b.updatedAt - a.updatedAt);
+    if (!sorted.length) {
+      const empty = document.createElement("div");
+      empty.className = "text-center text-slate-400 text-sm py-8 px-4";
+      empty.textContent = "No previous conversations yet.";
+      list.appendChild(empty);
+      return;
+    }
+    sorted.forEach((conv) => {
+      const last = conv.messages[conv.messages.length - 1];
+      const row = document.createElement("div");
+      row.className =
+        "flex items-center gap-2 rounded-xl px-3 py-2.5 cursor-pointer hover:bg-slate-100 transition-colors border " +
+        (conv.id === activeId ? "bg-indigo-50 border-indigo-200" : "border-transparent");
+      row.innerHTML = `
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-semibold text-slate-800 truncate">${escapeHtml(conv.title || "New chat")}</div>
+          <div class="text-xs text-slate-400 truncate">${escapeHtml(last ? last.text : "")}</div>
+        </div>
+        <span class="text-[11px] text-slate-400 flex-shrink-0">${timeAgo(conv.updatedAt)}</span>
+        <button data-del title="Delete" class="text-slate-300 hover:text-red-500 flex-shrink-0 px-1 bg-transparent border-none cursor-pointer"><i class="fa-solid fa-trash-can text-xs"></i></button>
+      `;
+      row.addEventListener("click", (e) => {
+        if (e.target.closest("[data-del]")) return;
+        switchConversation(conv.id);
+      });
+      row.querySelector("[data-del]").addEventListener("click", (e) => {
+        e.stopPropagation();
+        deleteConversation(conv.id);
+      });
+      list.appendChild(row);
+    });
+  }
+
+  const historyOverlay = panel.querySelector("#ms-history");
+  function openHistoryOverlay() {
+    renderHistoryList();
+    historyOverlay.classList.remove("hidden");
+    historyOverlay.classList.add("flex");
+  }
+  function closeHistoryOverlay() {
+    historyOverlay.classList.remove("flex");
+    historyOverlay.classList.add("hidden");
+  }
+
+  // Keeps the log pinned to its latest message regardless of what caused the
+  // change — a new message, a typing indicator, a full conversation swap — since
+  // reacting to the actual DOM mutation is reliable in a way that guessing when
+  // layout has "settled" after append never quite was.
+  new MutationObserver(() => { log.scrollTop = log.scrollHeight; }).observe(log, { childList: true, subtree: true });
 
   function render(msg, delayMs) {
     const div = document.createElement("div");
@@ -460,7 +634,16 @@
   function push(role, text) {
     const msg = { role, text };
     history.push(msg);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    active.updatedAt = Date.now();
+    // only a real user message earns this conversation a spot in the archive —
+    // otherwise clicking "New chat" and never typing anything would clutter the
+    // list with empty threads containing just the canned greeting
+    if (role === "user") {
+      if (!active.title) active.title = deriveTitle(history);
+      if (!conversations.includes(active)) conversations.unshift(active);
+    }
+    if (conversations.includes(active)) saveConversations();
+    else localStorage.setItem(ACTIVE_KEY, activeId);
     render(msg);
   }
 
@@ -606,24 +789,9 @@
     if (!log.hasChildNodes()) {
       // stagger each historical message's entrance; live messages (via push) pop in immediately
       history.forEach((msg, i) => render(msg, Math.min(160 + i * 60, 560)));
-      if (!history.length) {
-        const hero = document.createElement("div");
-        hero.className = "flex justify-center py-1";
-        hero.innerHTML = `<dotlottie-wc src="${LOTTIE_ASSISTANT}" autoplay loop class="w-20 h-20 block"></dotlottie-wc>`;
-        log.appendChild(hero);
-        push("bot", "Hi! I'm MagicScript — the assistant living on this site. Ask me what I can do. ✨");
-      }
+      if (!history.length) showGreeting();
     }
-    // always land on the latest message — history.forEach above only scrolls on
-    // the very first render; every later reopen needs this too, or it keeps
-    // whatever scroll position the log happened to be left at. Repeated across
-    // a couple frames since the hero animation / avatar images can still be
-    // settling their layout a moment after this first synchronous read.
-    log.scrollTop = log.scrollHeight;
-    requestAnimationFrame(() => {
-      log.scrollTop = log.scrollHeight;
-      requestAnimationFrame(() => { log.scrollTop = log.scrollHeight; });
-    });
+    log.scrollTop = log.scrollHeight; // the MutationObserver above only fires on later changes
     requestAnimationFrame(() => {
       panel.classList.remove("opacity-0", "scale-95", "translate-y-8");
       panel.classList.add("opacity-100", "scale-100", "translate-y-0");
@@ -643,11 +811,20 @@
 
   panel.querySelector("#ms-close").addEventListener("click", closePanel);
 
+  panel.querySelector("#ms-new").addEventListener("click", newChat);
+  panel.querySelector("#ms-history-btn").addEventListener("click", openHistoryOverlay);
+  panel.querySelector("#ms-history-back").addEventListener("click", closeHistoryOverlay);
+
   panel.querySelector("#ms-clear").addEventListener("click", () => {
-    history = [];
+    conversations = [];
+    localStorage.removeItem(CONV_KEY);
     localStorage.removeItem(STORAGE_KEY);
+    active = { id: genId(), title: null, messages: [], updatedAt: Date.now() };
+    activeId = active.id;
+    history = active.messages;
+    localStorage.setItem(ACTIVE_KEY, activeId);
     log.innerHTML = "";
-    push("bot", "History cleared. Fresh start! ✨");
+    push("bot", "All conversations cleared. Fresh start! ✨");
   });
 
   form.addEventListener("submit", (e) => {
