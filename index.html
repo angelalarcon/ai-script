@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MagicScript — AI chat for any site</title>
+  <title>MagicScript — AI actions for any site</title>
   <link rel="icon" type="image/svg+xml" href="logo.svg">
   <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
   <!-- jsDelivr, not cdnjs: cdnjs's 7.3.0 fa-solid-900.woff2 is corrupted (differs
@@ -16,45 +16,286 @@
        section; pointer-events-none so it never blocks clicks on real content. -->
   <canvas id="kinetic-grid" class="fixed inset-0 -z-10 pointer-events-none" aria-hidden="true"></canvas>
 
-  <!-- Jumbotron -->
-  <section class="max-w-4xl mx-auto px-6 pt-28 pb-20 text-center">
-    <div class="inline-flex items-center gap-2 bg-indigo-500/10 text-indigo-300 text-sm px-4 py-1.5 rounded-full mb-8">
-      <i class="fa-solid fa-wand-magic-sparkles"></i>
-      <span data-i18n="badge">One script. Full AI.</span>
-    </div>
-    <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight" data-i18n="title">
-      Your site, now with a brain.
-    </h1>
-    <p class="mt-6 text-xl text-slate-400" data-i18n="subtitle">
-      Paste one line. Get an AI assistant that knows your site, your data, and can act on both.
-    </p>
-    <div class="mt-10 inline-flex items-center gap-3 bg-slate-900 border border-slate-800 rounded-xl px-5 py-3 font-mono text-sm text-emerald-400">
-      <i class="fa-solid fa-code text-slate-500"></i>
-      &lt;script src="https://magicscript.ai/widget.js"&gt;&lt;/script&gt;
+  <!-- Hero -->
+  <section class="max-w-4xl mx-auto px-6 pt-20 pb-12" data-reveal>
+    <div class="rounded-3xl bg-gradient-to-br from-indigo-600/25 via-slate-900/70 to-slate-900/70 border border-indigo-500/20 px-8 py-16 text-center">
+      <div class="inline-flex items-center gap-2 bg-indigo-500/10 text-indigo-300 text-sm px-4 py-1.5 rounded-full mb-8">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span data-i18n="badge">One script. Real actions.</span>
+      </div>
+      <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight" data-i18n="title">
+        Your site with AI actions
+      </h1>
+      <p class="mt-6 text-xl text-slate-400" data-i18n="subtitle">
+        Converse with the web and run real actions. From “ask” to “do.”
+      </p>
+      <div class="mt-10 inline-flex items-center gap-3 bg-slate-950/80 border border-slate-800 rounded-xl px-5 py-3 font-mono text-sm text-emerald-400">
+        <i class="fa-solid fa-code text-slate-500"></i>
+        &lt;script src="https://magicscript.ai/widget.js"&gt;&lt;/script&gt;
+      </div>
     </div>
   </section>
 
-  <!-- Features -->
-  <section class="max-w-5xl mx-auto px-6 pb-24 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-8">
-      <i class="fa-solid fa-comments text-3xl text-indigo-400"></i>
-      <h3 class="mt-4 font-semibold text-lg" data-i18n="f1t">Answers</h3>
-      <p class="mt-2 text-sm text-slate-400" data-i18n="f1d">Knows your site. Ask anything.</p>
+  <!-- The problem -->
+  <section class="max-w-5xl mx-auto px-6 pb-10" data-reveal>
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-8 md:p-12">
+      <span class="inline-block text-[11px] font-bold tracking-widest uppercase bg-amber-400/10 text-amber-300 px-3 py-1 rounded-full" data-i18n="l_problem">The problem</span>
+      <h2 class="mt-4 text-3xl md:text-4xl font-extrabold" data-i18n="problem_t">AI just chats</h2>
+      <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-6">
+          <i class="fa-solid fa-comment-slash text-2xl text-rose-400"></i>
+          <h3 class="mt-3 font-semibold" data-i18n="p1t">No real action</h3>
+          <p class="mt-1 text-sm text-slate-400" data-i18n="p1d">Chat that doesn't change your site.</p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-6">
+          <i class="fa-solid fa-circle-question text-2xl text-rose-400"></i>
+          <h3 class="mt-3 font-semibold" data-i18n="p2t">Generic answers</h3>
+          <p class="mt-1 text-sm text-slate-400" data-i18n="p2d">No access to internal data.</p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-6">
+          <i class="fa-solid fa-hourglass-half text-2xl text-rose-400"></i>
+          <h3 class="mt-3 font-semibold" data-i18n="p3t">Stuck users</h3>
+          <p class="mt-1 text-sm text-slate-400" data-i18n="p3d">Left waiting for the next step.</p>
+        </div>
+      </div>
     </div>
-    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-8">
-      <i class="fa-solid fa-chart-line text-3xl text-indigo-400"></i>
-      <h3 class="mt-4 font-semibold text-lg" data-i18n="f2t">Data</h3>
-      <p class="mt-2 text-sm text-slate-400" data-i18n="f2d">"Show March sales" → done.</p>
+  </section>
+
+  <!-- The cost -->
+  <section class="max-w-5xl mx-auto px-6 pb-10" data-reveal>
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-8 md:p-12">
+      <span class="inline-block text-[11px] font-bold tracking-widest uppercase bg-amber-400/10 text-amber-300 px-3 py-1 rounded-full" data-i18n="l_cost">The cost</span>
+      <h2 class="mt-4 text-3xl md:text-4xl font-extrabold" data-i18n="cost_t">The price of not acting</h2>
+      <div class="mt-10 max-w-xl mx-auto flex flex-col items-center gap-1">
+        <div class="w-[46%] [clip-path:polygon(18%_0,82%_0,100%_100%,0_100%)] bg-rose-500/20 text-center py-4">
+          <div class="font-semibold text-sm" data-i18n="c1t">Abandonment</div>
+          <div class="text-xs text-slate-400" data-i18n="c1d">Users leave without acting.</div>
+        </div>
+        <div class="w-[68%] [clip-path:polygon(11%_0,89%_0,100%_100%,0_100%)] bg-amber-400/20 text-center py-4">
+          <div class="font-semibold text-sm" data-i18n="c2t">Conversion</div>
+          <div class="text-xs text-slate-400" data-i18n="c2d">Drops without assistance.</div>
+        </div>
+        <div class="w-[90%] [clip-path:polygon(8%_0,92%_0,100%_100%,0_100%)] bg-indigo-500/20 text-center py-4">
+          <div class="font-semibold text-sm" data-i18n="c3t">Manual support</div>
+          <div class="text-xs text-slate-400" data-i18n="c3d">Expensive and repetitive.</div>
+        </div>
+      </div>
+      <p class="mt-8 text-center text-slate-400" data-i18n="cost_note">Every interaction without a result is a missed opportunity.</p>
     </div>
-    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-8">
-      <i class="fa-solid fa-bolt text-3xl text-indigo-400"></i>
-      <h3 class="mt-4 font-semibold text-lg" data-i18n="f3t">Actions</h3>
-      <p class="mt-2 text-sm text-slate-400" data-i18n="f3d">Navigates, generates pages, changes settings.</p>
+  </section>
+
+  <!-- The market -->
+  <section class="max-w-5xl mx-auto px-6 pb-10" data-reveal>
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-8 md:p-12">
+      <span class="inline-block text-[11px] font-bold tracking-widest uppercase bg-amber-400/10 text-amber-300 px-3 py-1 rounded-full" data-i18n="l_market">The market</span>
+      <h2 class="mt-4 text-3xl md:text-4xl font-extrabold" data-i18n="market_t">B2C &amp; B2B assistants on the rise</h2>
+      <div class="mt-10 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+        <div>
+          <div class="text-6xl font-extrabold text-indigo-300">3x</div>
+          <h3 class="mt-3 font-semibold" data-i18n="m1t">More conversion</h3>
+          <p class="mt-1 text-sm text-slate-400" data-i18n="m1d">With fewer steps in the journey.</p>
+        </div>
+        <div>
+          <div class="text-6xl font-extrabold text-indigo-300">80%</div>
+          <h3 class="mt-3 font-semibold" data-i18n="m2t">Growing demand</h3>
+          <p class="mt-1 text-sm text-slate-400" data-i18n="m2d">Generative AI adoption on websites.</p>
+        </div>
+        <div>
+          <div class="text-6xl font-extrabold text-indigo-300">1</div>
+          <h3 class="mt-3 font-semibold" data-i18n="m3t">Measurable action</h3>
+          <p class="mt-1 text-sm text-slate-400" data-i18n="m3d">Teams want interactions with results.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- The product -->
+  <section class="max-w-5xl mx-auto px-6 pb-10" data-reveal>
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-8 md:p-12">
+      <span class="inline-block text-[11px] font-bold tracking-widest uppercase bg-amber-400/10 text-amber-300 px-3 py-1 rounded-full" data-i18n="l_product">The product</span>
+      <h2 class="mt-4 text-3xl md:text-4xl font-extrabold" data-i18n="product_t">Script + Prompt UI</h2>
+      <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <!-- widget mock -->
+        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-5">
+          <div class="flex items-center gap-2 pb-3 border-b border-slate-800">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500/70"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400/70"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/70"></span>
+          </div>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <span class="text-xs bg-indigo-500/10 text-indigo-300 px-3 py-1 rounded-full" data-i18n="mock_c1">Switch to Spanish</span>
+            <span class="text-xs bg-indigo-500/10 text-indigo-300 px-3 py-1 rounded-full" data-i18n="mock_c2">Show March sales</span>
+          </div>
+          <div class="mt-4 space-y-2">
+            <div class="h-2 rounded bg-slate-800 w-3/4"></div>
+            <div class="h-2 rounded bg-slate-800 w-1/2"></div>
+          </div>
+          <div class="mt-5 flex items-center gap-2 border border-slate-700 rounded-full px-4 py-2.5">
+            <span class="text-sm text-slate-500 flex-1" data-i18n="mock_input">Ask me anything…</span>
+            <i class="fa-solid fa-paper-plane text-indigo-400"></i>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <div class="border border-indigo-500/30 bg-indigo-500/5 rounded-xl p-4">
+            <h3 class="font-semibold" data-i18n="pr1t">Ready-made panel</h3>
+            <p class="mt-1 text-sm text-slate-400" data-i18n="pr1d">Type a prompt, trigger a flow.</p>
+          </div>
+          <div class="border border-indigo-500/30 bg-indigo-500/5 rounded-xl p-4">
+            <h3 class="font-semibold" data-i18n="pr2t">Answer + action</h3>
+            <p class="mt-1 text-sm text-slate-400" data-i18n="pr2d">In the same journey.</p>
+          </div>
+          <div class="border border-indigo-500/30 bg-indigo-500/5 rounded-xl p-4">
+            <h3 class="font-semibold" data-i18n="pr3t">Internal execution</h3>
+            <p class="mt-1 text-sm text-slate-400" data-i18n="pr3d">Acts inside your site, not outside.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="max-w-5xl mx-auto px-6 pb-10" data-reveal>
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-8 md:p-12">
+      <span class="inline-block text-[11px] font-bold tracking-widest uppercase bg-amber-400/10 text-amber-300 px-3 py-1 rounded-full" data-i18n="l_how">How it works</span>
+      <h2 class="mt-4 text-3xl md:text-4xl font-extrabold" data-i18n="how_t">From prompt to action</h2>
+      <div class="mt-10 flex flex-col md:flex-row items-center justify-center gap-6">
+        <div class="flex flex-col items-center text-center w-44">
+          <div class="w-32 h-32 rounded-full border-4 border-amber-400/80 flex items-center justify-center">
+            <i class="fa-solid fa-comments text-3xl text-amber-300"></i>
+          </div>
+          <h3 class="mt-4 font-semibold text-sm" data-i18n="h1t">User asks</h3>
+          <p class="mt-1 text-xs text-slate-400" data-i18n="h1d">A prompt in plain words.</p>
+        </div>
+        <i class="fa-solid fa-chevron-right text-slate-600 hidden md:block"></i>
+        <div class="flex flex-col items-center text-center w-44">
+          <div class="w-32 h-32 rounded-full border-4 border-amber-400/80 flex items-center justify-center">
+            <i class="fa-solid fa-wand-magic-sparkles text-3xl text-amber-300"></i>
+          </div>
+          <h3 class="mt-4 font-semibold text-sm" data-i18n="h2t">AI infers intent</h3>
+          <p class="mt-1 text-xs text-slate-400" data-i18n="h2d">Maps it to an allowed action.</p>
+        </div>
+        <i class="fa-solid fa-chevron-right text-slate-600 hidden md:block"></i>
+        <div class="flex flex-col items-center text-center w-44">
+          <div class="w-32 h-32 rounded-full border-4 border-amber-400/80 flex items-center justify-center">
+            <i class="fa-solid fa-circle-check text-3xl text-amber-300"></i>
+          </div>
+          <h3 class="mt-4 font-semibold text-sm" data-i18n="h3t">Site validates &amp; runs</h3>
+          <p class="mt-1 text-xs text-slate-400" data-i18n="h3d">The result appears in place.</p>
+        </div>
+      </div>
+      <p class="mt-8 text-center text-slate-400" data-i18n="how_note">One continuous flow that keeps users on your site at all times.</p>
+    </div>
+  </section>
+
+  <!-- Quality & control -->
+  <section class="max-w-5xl mx-auto px-6 pb-10" data-reveal>
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-8 md:p-12">
+      <span class="inline-block text-[11px] font-bold tracking-widest uppercase bg-amber-400/10 text-amber-300 px-3 py-1 rounded-full" data-i18n="l_quality">Quality &amp; control</span>
+      <h2 class="mt-4 text-3xl md:text-4xl font-extrabold" data-i18n="quality_t">Protection on every execution</h2>
+      <div class="mt-8 grid grid-cols-1 md:grid-cols-[auto_1fr] gap-10 items-center">
+        <div class="text-center">
+          <i class="fa-solid fa-shield-halved text-8xl text-indigo-400"></i>
+        </div>
+        <div class="space-y-5">
+          <div class="flex items-start gap-4">
+            <i class="fa-solid fa-circle-check text-xl text-emerald-400 mt-0.5"></i>
+            <div>
+              <h3 class="font-semibold" data-i18n="q1t">Mapped actions</h3>
+              <p class="text-sm text-slate-400" data-i18n="q1d">Only what's allowed ever runs.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <i class="fa-solid fa-circle-check text-xl text-emerald-400 mt-0.5"></i>
+            <div>
+              <h3 class="font-semibold" data-i18n="q2t">Error handling</h3>
+              <p class="text-sm text-slate-400" data-i18n="q2d">Invalid input is managed.</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-4">
+            <i class="fa-solid fa-circle-check text-xl text-emerald-400 mt-0.5"></i>
+            <div>
+              <h3 class="font-semibold" data-i18n="q3t">Consistent format</h3>
+              <p class="text-sm text-slate-400" data-i18n="q3d">No UI breakage across devices.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Traction -->
+  <section class="max-w-5xl mx-auto px-6 pb-10" data-reveal>
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-8 md:p-12">
+      <span class="inline-block text-[11px] font-bold tracking-widest uppercase bg-amber-400/10 text-amber-300 px-3 py-1 rounded-full" data-i18n="l_traction">Traction</span>
+      <h2 class="mt-4 text-3xl md:text-4xl font-extrabold" data-i18n="traction_t">Prove the value</h2>
+      <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+        <div class="space-y-5">
+          <div>
+            <div class="flex justify-between text-sm mb-1.5">
+              <span data-i18n="bar1">Clicks to action</span><span class="text-amber-300 font-semibold">−64%</span>
+            </div>
+            <div class="h-3 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-amber-400 rounded-full w-0 transition-all duration-1000 ease-out motion-reduce:transition-none" data-grow="w-[86%]"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1.5">
+              <span data-i18n="bar2">Assisted conversion</span><span class="text-amber-300 font-semibold">×3</span>
+            </div>
+            <div class="h-3 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-amber-400 rounded-full w-0 transition-all duration-1000 ease-out motion-reduce:transition-none" data-grow="w-[62%]"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-sm mb-1.5">
+              <span data-i18n="bar3">Manual support load</span><span class="text-amber-300 font-semibold">−40%</span>
+            </div>
+            <div class="h-3 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-amber-400 rounded-full w-0 transition-all duration-1000 ease-out motion-reduce:transition-none" data-grow="w-[38%]"></div>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <div class="border border-indigo-500/30 bg-indigo-500/5 rounded-xl p-4">
+            <h3 class="font-semibold" data-i18n="tr1t">Fewer clicks</h3>
+            <p class="mt-1 text-sm text-slate-400" data-i18n="tr1d">From prompt to action.</p>
+          </div>
+          <div class="border border-indigo-500/30 bg-indigo-500/5 rounded-xl p-4">
+            <h3 class="font-semibold" data-i18n="tr2t">Telemetry</h3>
+            <p class="mt-1 text-sm text-slate-400" data-i18n="tr2d">See which prompts convert.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Next steps -->
+  <section class="max-w-5xl mx-auto px-6 pb-16" data-reveal>
+    <div class="bg-slate-900/60 border border-slate-800 rounded-3xl p-8 md:p-12">
+      <span class="inline-block text-[11px] font-bold tracking-widest uppercase bg-amber-400/10 text-amber-300 px-3 py-1 rounded-full" data-i18n="l_start">Next steps</span>
+      <h2 class="mt-4 text-3xl md:text-4xl font-extrabold" data-i18n="start_t">Install and try it today</h2>
+      <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-6">
+          <span class="text-3xl font-extrabold text-amber-300">1</span>
+          <h3 class="mt-2 font-semibold" data-i18n="s1t">Integrate</h3>
+          <p class="mt-1 text-sm text-slate-400" data-i18n="s1d">Script + prompt panel.</p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-6">
+          <span class="text-3xl font-extrabold text-amber-300">2</span>
+          <h3 class="mt-2 font-semibold" data-i18n="s2t">Define</h3>
+          <p class="mt-1 text-sm text-slate-400" data-i18n="s2d">3 initial actions and metrics.</p>
+        </div>
+        <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-6">
+          <span class="text-3xl font-extrabold text-amber-300">3</span>
+          <h3 class="mt-2 font-semibold" data-i18n="s3t">Launch</h3>
+          <p class="mt-1 text-sm text-slate-400" data-i18n="s3d">Demo to your audience, gather real feedback.</p>
+        </div>
+      </div>
     </div>
   </section>
 
   <!-- Try it -->
-  <section class="max-w-3xl mx-auto px-6 pb-32 text-center">
+  <section class="max-w-3xl mx-auto px-6 pb-32 text-center" data-reveal>
     <p class="text-slate-400" data-i18n="try">
       It's live on this page. Ask it to switch this site to Spanish.
     </p>
@@ -69,138 +310,618 @@
     // Site translations + the action MagicScript can call
     const i18n = {
       en: {
-        badge: "One script. Full AI.",
-        title: "Your site, now with a brain.",
-        subtitle: "Paste one line. Get an AI assistant that knows your site, your data, and can act on both.",
-        f1t: "Answers", f1d: "Knows your site. Ask anything.",
-        f2t: "Data", f2d: '"Show March sales" → done.',
-        f3t: "Actions", f3d: "Navigates, generates pages, changes settings.",
+        badge: "One script. Real actions.",
+        title: "Your site with AI actions",
+        subtitle: "Converse with the web and run real actions. From “ask” to “do.”",
+        l_problem: "The problem", problem_t: "AI just chats",
+        p1t: "No real action", p1d: "Chat that doesn't change your site.",
+        p2t: "Generic answers", p2d: "No access to internal data.",
+        p3t: "Stuck users", p3d: "Left waiting for the next step.",
+        l_cost: "The cost", cost_t: "The price of not acting",
+        c1t: "Abandonment", c1d: "Users leave without acting.",
+        c2t: "Conversion", c2d: "Drops without assistance.",
+        c3t: "Manual support", c3d: "Expensive and repetitive.",
+        cost_note: "Every interaction without a result is a missed opportunity.",
+        l_market: "The market", market_t: "B2C & B2B assistants on the rise",
+        m1t: "More conversion", m1d: "With fewer steps in the journey.",
+        m2t: "Growing demand", m2d: "Generative AI adoption on websites.",
+        m3t: "Measurable action", m3d: "Teams want interactions with results.",
+        l_product: "The product", product_t: "Script + Prompt UI",
+        pr1t: "Ready-made panel", pr1d: "Type a prompt, trigger a flow.",
+        pr2t: "Answer + action", pr2d: "In the same journey.",
+        pr3t: "Internal execution", pr3d: "Acts inside your site, not outside.",
+        mock_input: "Ask me anything…", mock_c1: "Switch to Spanish", mock_c2: "Show March sales",
+        l_how: "How it works", how_t: "From prompt to action",
+        h1t: "User asks", h1d: "A prompt in plain words.",
+        h2t: "AI infers intent", h2d: "Maps it to an allowed action.",
+        h3t: "Site validates & runs", h3d: "The result appears in place.",
+        how_note: "One continuous flow that keeps users on your site at all times.",
+        l_quality: "Quality & control", quality_t: "Protection on every execution",
+        q1t: "Mapped actions", q1d: "Only what's allowed ever runs.",
+        q2t: "Error handling", q2d: "Invalid input is managed.",
+        q3t: "Consistent format", q3d: "No UI breakage across devices.",
+        l_traction: "Traction", traction_t: "Prove the value",
+        tr1t: "Fewer clicks", tr1d: "From prompt to action.",
+        tr2t: "Telemetry", tr2d: "See which prompts convert.",
+        bar1: "Clicks to action", bar2: "Assisted conversion", bar3: "Manual support load",
+        l_start: "Next steps", start_t: "Install and try it today",
+        s1t: "Integrate", s1d: "Script + prompt panel.",
+        s2t: "Define", s2d: "3 initial actions and metrics.",
+        s3t: "Launch", s3d: "Demo to your audience, gather real feedback.",
         try: "It's live on this page. Ask it to switch this site to Spanish."
       },
       es: {
-        badge: "Un script. IA completa.",
-        title: "Tu sitio, ahora con cerebro.",
-        subtitle: "Pega una línea. Obtén un asistente de IA que conoce tu sitio, tus datos, y puede actuar sobre ambos.",
-        f1t: "Respuestas", f1d: "Conoce tu sitio. Pregunta lo que sea.",
-        f2t: "Datos", f2d: '"Muestra las ventas de marzo" → listo.',
-        f3t: "Acciones", f3d: "Navega, genera páginas, cambia ajustes.",
+        badge: "Un script. Acciones reales.",
+        title: "Tu sitio con acciones IA",
+        subtitle: "Conversa con la web y ejecuta acciones reales. Del «pregunta» al «hacer».",
+        l_problem: "El problema", problem_t: "La IA solo charla",
+        p1t: "Sin acción real", p1d: "Chat que no cambia tu sitio.",
+        p2t: "Respuestas genéricas", p2d: "Sin acceso a datos internos.",
+        p3t: "Usuarios atascados", p3d: "Esperan el siguiente paso.",
+        l_cost: "El coste", cost_t: "El precio de no actuar",
+        c1t: "Abandono", c1d: "Los usuarios se van sin actuar.",
+        c2t: "Conversión", c2d: "Cae sin asistencia.",
+        c3t: "Soporte manual", c3d: "Caro y repetitivo.",
+        cost_note: "Cada interacción sin resultado es una oportunidad perdida.",
+        l_market: "El mercado", market_t: "Asistentes B2C y B2B en auge",
+        m1t: "Más conversión", m1d: "Con menos pasos en el recorrido.",
+        m2t: "Demanda creciente", m2d: "Adopción de IA generativa en sitios web.",
+        m3t: "Acción medible", m3d: "Los equipos buscan interacciones con resultado.",
+        l_product: "El producto", product_t: "Script + UI de prompts",
+        pr1t: "Plantilla lista", pr1d: "Teclea un prompt y dispara un flujo.",
+        pr2t: "Respuesta + acción", pr2d: "En el mismo recorrido.",
+        pr3t: "Ejecución interna", pr3d: "Actúa dentro del sitio, no fuera.",
+        mock_input: "Pregúntame lo que sea…", mock_c1: "Cambia al inglés", mock_c2: "Muestra ventas de marzo",
+        l_how: "Cómo funciona", how_t: "Del prompt a la acción",
+        h1t: "Usuario pregunta", h1d: "Un prompt en lenguaje natural.",
+        h2t: "IA genera intención", h2d: "La asigna a una acción permitida.",
+        h3t: "Sitio valida y ejecuta", h3d: "El resultado aparece al momento.",
+        how_note: "Un flujo continuo que mantiene al usuario dentro de tu sitio en todo momento.",
+        l_quality: "Calidad y control", quality_t: "Protección en cada ejecución",
+        q1t: "Acciones mapeadas", q1d: "Solo se ejecuta lo permitido.",
+        q2t: "Manejo de errores", q2d: "Entradas inválidas gestionadas.",
+        q3t: "Formato consistente", q3d: "Sin fallos en la UI ni entre dispositivos.",
+        l_traction: "Tracción", traction_t: "Demuestra el valor",
+        tr1t: "Menos clics", tr1d: "Del prompt a la acción.",
+        tr2t: "Telemetría", tr2d: "Qué prompts convierten.",
+        bar1: "Clics hasta la acción", bar2: "Conversión asistida", bar3: "Carga de soporte manual",
+        l_start: "Próximos pasos", start_t: "Instala y prueba hoy",
+        s1t: "Integra", s1d: "Script + panel de prompts.",
+        s2t: "Define", s2d: "3 acciones iniciales y métricas.",
+        s3t: "Lanza", s3d: "Demo a tu público con feedback real.",
         try: "Está activo en esta página. Pídele que cambie este sitio al inglés."
       },
       fr: {
-        badge: "Un script. IA complète.",
-        title: "Votre site, avec un cerveau.",
-        subtitle: "Collez une ligne. Obtenez un assistant IA qui connaît votre site, vos données, et peut agir sur les deux.",
-        f1t: "Réponses", f1d: "Connaît votre site. Demandez ce que vous voulez.",
-        f2t: "Données", f2d: "« Montre les ventes de mars » → fait.",
-        f3t: "Actions", f3d: "Navigue, génère des pages, modifie les paramètres.",
+        badge: "Un script. Des actions réelles.",
+        title: "Votre site avec des actions IA",
+        subtitle: "Conversez avec le web et exécutez de vraies actions. De « demander » à « faire ».",
+        l_problem: "Le problème", problem_t: "L'IA ne fait que bavarder",
+        p1t: "Aucune action réelle", p1d: "Un chat qui ne change pas votre site.",
+        p2t: "Réponses génériques", p2d: "Sans accès aux données internes.",
+        p3t: "Utilisateurs bloqués", p3d: "En attente de l'étape suivante.",
+        l_cost: "Le coût", cost_t: "Le prix de l'inaction",
+        c1t: "Abandon", c1d: "Les utilisateurs partent sans agir.",
+        c2t: "Conversion", c2d: "Chute sans assistance.",
+        c3t: "Support manuel", c3d: "Coûteux et répétitif.",
+        cost_note: "Chaque interaction sans résultat est une occasion manquée.",
+        l_market: "Le marché", market_t: "Les assistants B2C et B2B en plein essor",
+        m1t: "Plus de conversion", m1d: "Avec moins d'étapes dans le parcours.",
+        m2t: "Demande croissante", m2d: "Adoption de l'IA générative sur les sites web.",
+        m3t: "Action mesurable", m3d: "Les équipes veulent des interactions avec résultat.",
+        l_product: "Le produit", product_t: "Script + UI de prompts",
+        pr1t: "Panneau prêt à l'emploi", pr1d: "Tapez un prompt, déclenchez un flux.",
+        pr2t: "Réponse + action", pr2d: "Dans le même parcours.",
+        pr3t: "Exécution interne", pr3d: "Agit dans votre site, pas ailleurs.",
+        mock_input: "Demandez-moi ce que vous voulez…", mock_c1: "Passer en anglais", mock_c2: "Ventes de mars",
+        l_how: "Comment ça marche", how_t: "Du prompt à l'action",
+        h1t: "L'utilisateur demande", h1d: "Un prompt en langage naturel.",
+        h2t: "L'IA déduit l'intention", h2d: "L'associe à une action autorisée.",
+        h3t: "Le site valide et exécute", h3d: "Le résultat apparaît sur place.",
+        how_note: "Un flux continu qui garde l'utilisateur sur votre site à tout moment.",
+        l_quality: "Qualité et contrôle", quality_t: "Protection à chaque exécution",
+        q1t: "Actions cartographiées", q1d: "Seul l'autorisé s'exécute.",
+        q2t: "Gestion des erreurs", q2d: "Les saisies invalides sont gérées.",
+        q3t: "Format cohérent", q3d: "Aucune casse d'UI, quel que soit l'appareil.",
+        l_traction: "Traction", traction_t: "Prouvez la valeur",
+        tr1t: "Moins de clics", tr1d: "Du prompt à l'action.",
+        tr2t: "Télémétrie", tr2d: "Quels prompts convertissent.",
+        bar1: "Clics jusqu'à l'action", bar2: "Conversion assistée", bar3: "Charge de support manuel",
+        l_start: "Prochaines étapes", start_t: "Installez et essayez aujourd'hui",
+        s1t: "Intégrez", s1d: "Script + panneau de prompts.",
+        s2t: "Définissez", s2d: "3 actions initiales et des métriques.",
+        s3t: "Lancez", s3d: "Démo à votre audience, feedback réel.",
         try: "Il est actif sur cette page. Demandez-lui de passer le site en anglais."
       },
       de: {
-        badge: "Ein Skript. Volle KI.",
-        title: "Deine Website, jetzt mit Gehirn.",
-        subtitle: "Füge eine Zeile ein. Erhalte einen KI-Assistenten, der deine Website und deine Daten kennt — und handeln kann.",
-        f1t: "Antworten", f1d: "Kennt deine Website. Frag alles.",
-        f2t: "Daten", f2d: "„Zeig die März-Verkäufe“ → erledigt.",
-        f3t: "Aktionen", f3d: "Navigiert, erstellt Seiten, ändert Einstellungen.",
+        badge: "Ein Skript. Echte Aktionen.",
+        title: "Deine Website mit KI-Aktionen",
+        subtitle: "Sprich mit dem Web und führe echte Aktionen aus. Vom „Fragen“ zum „Machen“.",
+        l_problem: "Das Problem", problem_t: "KI redet nur",
+        p1t: "Keine echte Aktion", p1d: "Chat, der deine Website nicht verändert.",
+        p2t: "Generische Antworten", p2d: "Kein Zugriff auf interne Daten.",
+        p3t: "Feststeckende Nutzer", p3d: "Warten auf den nächsten Schritt.",
+        l_cost: "Die Kosten", cost_t: "Der Preis des Nichtstuns",
+        c1t: "Absprung", c1d: "Nutzer gehen, ohne zu handeln.",
+        c2t: "Conversion", c2d: "Sinkt ohne Unterstützung.",
+        c3t: "Manueller Support", c3d: "Teuer und repetitiv.",
+        cost_note: "Jede Interaktion ohne Ergebnis ist eine verpasste Chance.",
+        l_market: "Der Markt", market_t: "B2C- und B2B-Assistenten im Aufschwung",
+        m1t: "Mehr Conversion", m1d: "Mit weniger Schritten im Ablauf.",
+        m2t: "Wachsende Nachfrage", m2d: "Generative KI auf Websites setzt sich durch.",
+        m3t: "Messbare Aktion", m3d: "Teams wollen Interaktionen mit Ergebnis.",
+        l_product: "Das Produkt", product_t: "Skript + Prompt-UI",
+        pr1t: "Fertiges Panel", pr1d: "Prompt tippen, Ablauf auslösen.",
+        pr2t: "Antwort + Aktion", pr2d: "Im selben Ablauf.",
+        pr3t: "Interne Ausführung", pr3d: "Handelt in deiner Website, nicht außerhalb.",
+        mock_input: "Frag mich alles…", mock_c1: "Auf Englisch umstellen", mock_c2: "März-Verkäufe zeigen",
+        l_how: "So funktioniert's", how_t: "Vom Prompt zur Aktion",
+        h1t: "Nutzer fragt", h1d: "Ein Prompt in normaler Sprache.",
+        h2t: "KI erkennt die Absicht", h2d: "Ordnet sie einer erlaubten Aktion zu.",
+        h3t: "Website prüft & führt aus", h3d: "Das Ergebnis erscheint direkt.",
+        how_note: "Ein durchgehender Ablauf, der Nutzer jederzeit auf deiner Website hält.",
+        l_quality: "Qualität & Kontrolle", quality_t: "Schutz bei jeder Ausführung",
+        q1t: "Definierte Aktionen", q1d: "Nur Erlaubtes wird ausgeführt.",
+        q2t: "Fehlerbehandlung", q2d: "Ungültige Eingaben werden abgefangen.",
+        q3t: "Konsistentes Format", q3d: "Keine UI-Fehler, auf keinem Gerät.",
+        l_traction: "Traktion", traction_t: "Zeig den Wert",
+        tr1t: "Weniger Klicks", tr1d: "Vom Prompt zur Aktion.",
+        tr2t: "Telemetrie", tr2d: "Welche Prompts konvertieren.",
+        bar1: "Klicks bis zur Aktion", bar2: "Unterstützte Conversion", bar3: "Manuelle Support-Last",
+        l_start: "Nächste Schritte", start_t: "Installiere und teste noch heute",
+        s1t: "Integrieren", s1d: "Skript + Prompt-Panel.",
+        s2t: "Definieren", s2d: "3 erste Aktionen und Metriken.",
+        s3t: "Starten", s3d: "Demo für deine Zielgruppe, echtes Feedback.",
         try: "Es läuft live auf dieser Seite. Bitte es, die Seite auf Englisch umzustellen."
       },
       pt: {
-        badge: "Um script. IA completa.",
-        title: "Seu site, agora com cérebro.",
-        subtitle: "Cole uma linha. Tenha um assistente de IA que conhece seu site, seus dados, e pode agir sobre ambos.",
-        f1t: "Respostas", f1d: "Conhece seu site. Pergunte qualquer coisa.",
-        f2t: "Dados", f2d: '"Mostre as vendas de março" → pronto.',
-        f3t: "Ações", f3d: "Navega, gera páginas, altera configurações.",
+        badge: "Um script. Ações reais.",
+        title: "Seu site com ações de IA",
+        subtitle: "Converse com a web e execute ações reais. Do “perguntar” ao “fazer”.",
+        l_problem: "O problema", problem_t: "A IA só conversa",
+        p1t: "Sem ação real", p1d: "Chat que não muda seu site.",
+        p2t: "Respostas genéricas", p2d: "Sem acesso a dados internos.",
+        p3t: "Usuários travados", p3d: "Esperando o próximo passo.",
+        l_cost: "O custo", cost_t: "O preço de não agir",
+        c1t: "Abandono", c1d: "Usuários saem sem agir.",
+        c2t: "Conversão", c2d: "Cai sem assistência.",
+        c3t: "Suporte manual", c3d: "Caro e repetitivo.",
+        cost_note: "Cada interação sem resultado é uma oportunidade perdida.",
+        l_market: "O mercado", market_t: "Assistentes B2C e B2B em alta",
+        m1t: "Mais conversão", m1d: "Com menos passos na jornada.",
+        m2t: "Demanda crescente", m2d: "Adoção de IA generativa em sites.",
+        m3t: "Ação mensurável", m3d: "Equipes querem interações com resultado.",
+        l_product: "O produto", product_t: "Script + UI de prompts",
+        pr1t: "Painel pronto", pr1d: "Digite um prompt, dispare um fluxo.",
+        pr2t: "Resposta + ação", pr2d: "Na mesma jornada.",
+        pr3t: "Execução interna", pr3d: "Age dentro do seu site, não fora.",
+        mock_input: "Pergunte qualquer coisa…", mock_c1: "Mudar para inglês", mock_c2: "Vendas de março",
+        l_how: "Como funciona", how_t: "Do prompt à ação",
+        h1t: "Usuário pergunta", h1d: "Um prompt em linguagem natural.",
+        h2t: "IA infere a intenção", h2d: "Associa a uma ação permitida.",
+        h3t: "Site valida e executa", h3d: "O resultado aparece na hora.",
+        how_note: "Um fluxo contínuo que mantém o usuário no seu site o tempo todo.",
+        l_quality: "Qualidade e controle", quality_t: "Proteção em cada execução",
+        q1t: "Ações mapeadas", q1d: "Só o permitido é executado.",
+        q2t: "Tratamento de erros", q2d: "Entradas inválidas são gerenciadas.",
+        q3t: "Formato consistente", q3d: "Sem falhas de UI em nenhum dispositivo.",
+        l_traction: "Tração", traction_t: "Prove o valor",
+        tr1t: "Menos cliques", tr1d: "Do prompt à ação.",
+        tr2t: "Telemetria", tr2d: "Quais prompts convertem.",
+        bar1: "Cliques até a ação", bar2: "Conversão assistida", bar3: "Carga de suporte manual",
+        l_start: "Próximos passos", start_t: "Instale e teste hoje",
+        s1t: "Integre", s1d: "Script + painel de prompts.",
+        s2t: "Defina", s2d: "3 ações iniciais e métricas.",
+        s3t: "Lance", s3d: "Demo para seu público, feedback real.",
         try: "Está ativo nesta página. Peça para mudar o site para inglês."
       },
       it: {
-        badge: "Uno script. IA completa.",
-        title: "Il tuo sito, ora con un cervello.",
-        subtitle: "Incolla una riga. Ottieni un assistente IA che conosce il tuo sito, i tuoi dati, e può agire su entrambi.",
-        f1t: "Risposte", f1d: "Conosce il tuo sito. Chiedi qualsiasi cosa.",
-        f2t: "Dati", f2d: '"Mostra le vendite di marzo" → fatto.',
-        f3t: "Azioni", f3d: "Naviga, genera pagine, cambia impostazioni.",
+        badge: "Uno script. Azioni reali.",
+        title: "Il tuo sito con azioni IA",
+        subtitle: "Conversa con il web ed esegui azioni reali. Dal “chiedere” al “fare”.",
+        l_problem: "Il problema", problem_t: "L'IA chiacchiera e basta",
+        p1t: "Nessuna azione reale", p1d: "Chat che non cambia il tuo sito.",
+        p2t: "Risposte generiche", p2d: "Senza accesso ai dati interni.",
+        p3t: "Utenti bloccati", p3d: "In attesa del prossimo passo.",
+        l_cost: "Il costo", cost_t: "Il prezzo di non agire",
+        c1t: "Abbandono", c1d: "Gli utenti se ne vanno senza agire.",
+        c2t: "Conversione", c2d: "Cala senza assistenza.",
+        c3t: "Supporto manuale", c3d: "Costoso e ripetitivo.",
+        cost_note: "Ogni interazione senza risultato è un'occasione persa.",
+        l_market: "Il mercato", market_t: "Assistenti B2C e B2B in crescita",
+        m1t: "Più conversione", m1d: "Con meno passaggi nel percorso.",
+        m2t: "Domanda crescente", m2d: "Adozione dell'IA generativa sui siti web.",
+        m3t: "Azione misurabile", m3d: "I team vogliono interazioni con risultato.",
+        l_product: "Il prodotto", product_t: "Script + UI di prompt",
+        pr1t: "Pannello pronto", pr1d: "Scrivi un prompt, avvia un flusso.",
+        pr2t: "Risposta + azione", pr2d: "Nello stesso percorso.",
+        pr3t: "Esecuzione interna", pr3d: "Agisce dentro il tuo sito, non fuori.",
+        mock_input: "Chiedimi qualsiasi cosa…", mock_c1: "Passa all'inglese", mock_c2: "Vendite di marzo",
+        l_how: "Come funziona", how_t: "Dal prompt all'azione",
+        h1t: "L'utente chiede", h1d: "Un prompt in linguaggio naturale.",
+        h2t: "L'IA deduce l'intento", h2d: "Lo collega a un'azione consentita.",
+        h3t: "Il sito valida ed esegue", h3d: "Il risultato appare subito.",
+        how_note: "Un flusso continuo che tiene l'utente sul tuo sito in ogni momento.",
+        l_quality: "Qualità e controllo", quality_t: "Protezione a ogni esecuzione",
+        q1t: "Azioni mappate", q1d: "Si esegue solo ciò che è consentito.",
+        q2t: "Gestione errori", q2d: "Input non validi gestiti.",
+        q3t: "Formato coerente", q3d: "Nessun problema di UI su nessun dispositivo.",
+        l_traction: "Trazione", traction_t: "Dimostra il valore",
+        tr1t: "Meno clic", tr1d: "Dal prompt all'azione.",
+        tr2t: "Telemetria", tr2d: "Quali prompt convertono.",
+        bar1: "Clic fino all'azione", bar2: "Conversione assistita", bar3: "Carico di supporto manuale",
+        l_start: "Prossimi passi", start_t: "Installa e prova oggi",
+        s1t: "Integra", s1d: "Script + pannello di prompt.",
+        s2t: "Definisci", s2d: "3 azioni iniziali e metriche.",
+        s3t: "Lancia", s3d: "Demo al tuo pubblico, feedback reale.",
         try: "È attivo su questa pagina. Chiedigli di passare il sito all'inglese."
       },
       nl: {
-        badge: "Eén script. Volledige AI.",
-        title: "Jouw site, nu met een brein.",
-        subtitle: "Plak één regel. Krijg een AI-assistent die je site en je data kent — en kan handelen.",
-        f1t: "Antwoorden", f1d: "Kent je site. Vraag alles.",
-        f2t: "Data", f2d: '"Toon de verkoop van maart" → klaar.',
-        f3t: "Acties", f3d: "Navigeert, genereert pagina's, wijzigt instellingen.",
+        badge: "Eén script. Echte acties.",
+        title: "Jouw site met AI-acties",
+        subtitle: "Praat met het web en voer echte acties uit. Van “vragen” naar “doen”.",
+        l_problem: "Het probleem", problem_t: "AI kletst alleen maar",
+        p1t: "Geen echte actie", p1d: "Chat die je site niet verandert.",
+        p2t: "Generieke antwoorden", p2d: "Geen toegang tot interne data.",
+        p3t: "Vastgelopen gebruikers", p3d: "Wachten op de volgende stap.",
+        l_cost: "De kosten", cost_t: "De prijs van niet handelen",
+        c1t: "Afhaken", c1d: "Gebruikers vertrekken zonder actie.",
+        c2t: "Conversie", c2d: "Daalt zonder hulp.",
+        c3t: "Handmatige support", c3d: "Duur en repetitief.",
+        cost_note: "Elke interactie zonder resultaat is een gemiste kans.",
+        l_market: "De markt", market_t: "B2C- en B2B-assistenten in opkomst",
+        m1t: "Meer conversie", m1d: "Met minder stappen in de journey.",
+        m2t: "Groeiende vraag", m2d: "Generatieve AI wint terrein op websites.",
+        m3t: "Meetbare actie", m3d: "Teams willen interacties met resultaat.",
+        l_product: "Het product", product_t: "Script + prompt-UI",
+        pr1t: "Kant-en-klaar paneel", pr1d: "Typ een prompt, start een flow.",
+        pr2t: "Antwoord + actie", pr2d: "In dezelfde journey.",
+        pr3t: "Interne uitvoering", pr3d: "Handelt binnen je site, niet erbuiten.",
+        mock_input: "Vraag me alles…", mock_c1: "Zet om naar Engels", mock_c2: "Toon maartverkoop",
+        l_how: "Hoe het werkt", how_t: "Van prompt naar actie",
+        h1t: "Gebruiker vraagt", h1d: "Een prompt in gewone taal.",
+        h2t: "AI leidt intentie af", h2d: "Koppelt die aan een toegestane actie.",
+        h3t: "Site valideert & voert uit", h3d: "Het resultaat verschijnt direct.",
+        how_note: "Eén doorlopende flow die gebruikers altijd op je site houdt.",
+        l_quality: "Kwaliteit & controle", quality_t: "Bescherming bij elke uitvoering",
+        q1t: "Vastgelegde acties", q1d: "Alleen het toegestane wordt uitgevoerd.",
+        q2t: "Foutafhandeling", q2d: "Ongeldige invoer wordt opgevangen.",
+        q3t: "Consistent formaat", q3d: "Geen UI-fouten op welk apparaat dan ook.",
+        l_traction: "Tractie", traction_t: "Bewijs de waarde",
+        tr1t: "Minder klikken", tr1d: "Van prompt naar actie.",
+        tr2t: "Telemetrie", tr2d: "Welke prompts converteren.",
+        bar1: "Klikken tot actie", bar2: "Geassisteerde conversie", bar3: "Handmatige supportlast",
+        l_start: "Volgende stappen", start_t: "Installeer en probeer vandaag",
+        s1t: "Integreer", s1d: "Script + promptpaneel.",
+        s2t: "Definieer", s2d: "3 eerste acties en metrics.",
+        s3t: "Lanceer", s3d: "Demo aan je doelgroep, echte feedback.",
         try: "Hij is live op deze pagina. Vraag hem de site naar het Engels te zetten."
       },
       ru: {
-        badge: "Один скрипт. Полный ИИ.",
-        title: "Ваш сайт — теперь с мозгом.",
-        subtitle: "Вставьте одну строку. Получите ИИ-ассистента, который знает ваш сайт и данные — и может действовать.",
-        f1t: "Ответы", f1d: "Знает ваш сайт. Спрашивайте что угодно.",
-        f2t: "Данные", f2d: "«Покажи продажи за март» → готово.",
-        f3t: "Действия", f3d: "Навигация, генерация страниц, смена настроек.",
+        badge: "Один скрипт. Реальные действия.",
+        title: "Ваш сайт с ИИ-действиями",
+        subtitle: "Общайтесь с сайтом и выполняйте реальные действия. От «спросить» к «сделать».",
+        l_problem: "Проблема", problem_t: "ИИ только болтает",
+        p1t: "Нет реального действия", p1d: "Чат, который не меняет ваш сайт.",
+        p2t: "Шаблонные ответы", p2d: "Без доступа к внутренним данным.",
+        p3t: "Застрявшие пользователи", p3d: "Ждут следующего шага.",
+        l_cost: "Цена", cost_t: "Цена бездействия",
+        c1t: "Уход", c1d: "Пользователи уходят без действия.",
+        c2t: "Конверсия", c2d: "Падает без помощи.",
+        c3t: "Ручная поддержка", c3d: "Дорого и однообразно.",
+        cost_note: "Каждое взаимодействие без результата — упущенная возможность.",
+        l_market: "Рынок", market_t: "B2C- и B2B-ассистенты на подъёме",
+        m1t: "Больше конверсии", m1d: "Меньше шагов на пути пользователя.",
+        m2t: "Растущий спрос", m2d: "Генеративный ИИ приходит на сайты.",
+        m3t: "Измеримое действие", m3d: "Командам нужны взаимодействия с результатом.",
+        l_product: "Продукт", product_t: "Скрипт + панель промптов",
+        pr1t: "Готовая панель", pr1d: "Введите промпт — запустится процесс.",
+        pr2t: "Ответ + действие", pr2d: "В одном сценарии.",
+        pr3t: "Внутреннее выполнение", pr3d: "Действует внутри сайта, а не снаружи.",
+        mock_input: "Спросите что угодно…", mock_c1: "Переключить на английский", mock_c2: "Продажи за март",
+        l_how: "Как это работает", how_t: "От промпта к действию",
+        h1t: "Пользователь спрашивает", h1d: "Промпт обычными словами.",
+        h2t: "ИИ определяет намерение", h2d: "Сопоставляет с разрешённым действием.",
+        h3t: "Сайт проверяет и выполняет", h3d: "Результат появляется сразу.",
+        how_note: "Непрерывный поток, который всегда удерживает пользователя на вашем сайте.",
+        l_quality: "Качество и контроль", quality_t: "Защита при каждом выполнении",
+        q1t: "Описанные действия", q1d: "Выполняется только разрешённое.",
+        q2t: "Обработка ошибок", q2d: "Неверный ввод обрабатывается.",
+        q3t: "Единый формат", q3d: "Без сбоев интерфейса на любых устройствах.",
+        l_traction: "Результаты", traction_t: "Докажите ценность",
+        tr1t: "Меньше кликов", tr1d: "От промпта к действию.",
+        tr2t: "Телеметрия", tr2d: "Какие промпты конвертируют.",
+        bar1: "Кликов до действия", bar2: "Конверсия с ассистентом", bar3: "Нагрузка на поддержку",
+        l_start: "Следующие шаги", start_t: "Установите и попробуйте сегодня",
+        s1t: "Интегрируйте", s1d: "Скрипт + панель промптов.",
+        s2t: "Определите", s2d: "3 первых действия и метрики.",
+        s3t: "Запустите", s3d: "Демо для аудитории, реальная обратная связь.",
         try: "Он работает на этой странице. Попросите переключить сайт на английский."
       },
       zh: {
-        badge: "一个脚本，完整的 AI。",
-        title: "你的网站，现在有了大脑。",
-        subtitle: "粘贴一行代码，即可获得一个了解你的网站和数据、并能采取行动的 AI 助手。",
-        f1t: "回答", f1d: "了解你的网站，尽管提问。",
-        f2t: "数据", f2d: "「显示三月销售数据」→ 完成。",
-        f3t: "操作", f3d: "导航、生成页面、更改设置。",
+        badge: "一个脚本，真实行动。",
+        title: "让你的网站拥有 AI 行动力",
+        subtitle: "与网站对话并执行真实操作。从「问」到「做」。",
+        l_problem: "问题", problem_t: "AI 只会聊天",
+        p1t: "没有真实行动", p1d: "聊天改变不了你的网站。",
+        p2t: "答案千篇一律", p2d: "无法访问内部数据。",
+        p3t: "用户卡住了", p3d: "只能等待下一步。",
+        l_cost: "代价", cost_t: "不行动的代价",
+        c1t: "流失", c1d: "用户未采取行动就离开。",
+        c2t: "转化率", c2d: "缺乏协助时下降。",
+        c3t: "人工客服", c3d: "昂贵且重复。",
+        cost_note: "每一次没有结果的交互，都是错失的机会。",
+        l_market: "市场", market_t: "B2C 与 B2B 助手正在兴起",
+        m1t: "更高转化", m1d: "旅程中的步骤更少。",
+        m2t: "需求增长", m2d: "生成式 AI 正被网站广泛采用。",
+        m3t: "可衡量的行动", m3d: "团队想要有结果的交互。",
+        l_product: "产品", product_t: "脚本 + 提示词界面",
+        pr1t: "现成面板", pr1d: "输入提示词，触发流程。",
+        pr2t: "回答 + 行动", pr2d: "在同一旅程中完成。",
+        pr3t: "站内执行", pr3d: "在你的网站内部行动，而非站外。",
+        mock_input: "问我任何问题…", mock_c1: "切换为英文", mock_c2: "显示三月销售",
+        l_how: "工作原理", how_t: "从提示词到行动",
+        h1t: "用户提问", h1d: "用自然语言输入提示词。",
+        h2t: "AI 识别意图", h2d: "映射到允许的操作。",
+        h3t: "网站验证并执行", h3d: "结果即时呈现。",
+        how_note: "一个连续的流程，让用户始终留在你的网站上。",
+        l_quality: "质量与控制", quality_t: "每次执行都有保护",
+        q1t: "映射的操作", q1d: "只执行被允许的操作。",
+        q2t: "错误处理", q2d: "无效输入会被妥善处理。",
+        q3t: "格式一致", q3d: "任何设备上都不会出现界面故障。",
+        l_traction: "成效", traction_t: "证明价值",
+        tr1t: "更少点击", tr1d: "从提示词直达行动。",
+        tr2t: "遥测数据", tr2d: "看哪些提示词带来转化。",
+        bar1: "到达行动的点击数", bar2: "辅助转化", bar3: "人工客服负担",
+        l_start: "下一步", start_t: "今天就安装试用",
+        s1t: "集成", s1d: "脚本 + 提示词面板。",
+        s2t: "定义", s2d: "3 个初始操作和指标。",
+        s3t: "上线", s3d: "向目标用户演示，收集真实反馈。",
         try: "它就在这个页面上。让它把网站切换成英文试试。"
       },
       ja: {
-        badge: "スクリプト1行で、フルAI。",
-        title: "あなたのサイトに、頭脳を。",
-        subtitle: "1行貼るだけ。サイトとデータを理解し、行動できるAIアシスタントが手に入ります。",
-        f1t: "回答", f1d: "サイトを理解。何でも聞いてください。",
-        f2t: "データ", f2d: "「3月の売上を表示」→ 完了。",
-        f3t: "アクション", f3d: "ナビゲート、ページ生成、設定変更。",
+        badge: "スクリプト1行、リアルなアクション。",
+        title: "AIアクションを、あなたのサイトに",
+        subtitle: "ウェブと会話し、実際のアクションを実行。「聞く」から「動く」へ。",
+        l_problem: "課題", problem_t: "AIはおしゃべりだけ",
+        p1t: "実際のアクションがない", p1d: "チャットではサイトは変わらない。",
+        p2t: "ありきたりな回答", p2d: "内部データにアクセスできない。",
+        p3t: "行き詰まるユーザー", p3d: "次のステップを待つだけ。",
+        l_cost: "コスト", cost_t: "動かないことの代償",
+        c1t: "離脱", c1d: "行動せずに去っていく。",
+        c2t: "コンバージョン", c2d: "支援がないと低下。",
+        c3t: "手動サポート", c3d: "高コストで反復的。",
+        cost_note: "結果につながらないやり取りは、すべて機会損失です。",
+        l_market: "市場", market_t: "B2C・B2Bアシスタントが急成長",
+        m1t: "コンバージョン向上", m1d: "より少ないステップで。",
+        m2t: "高まる需要", m2d: "生成AIのサイト導入が拡大。",
+        m3t: "測定できるアクション", m3d: "結果の出る対話が求められている。",
+        l_product: "プロダクト", product_t: "スクリプト + プロンプトUI",
+        pr1t: "すぐ使えるパネル", pr1d: "プロンプトを入力してフローを起動。",
+        pr2t: "回答 + アクション", pr2d: "同じ導線の中で完結。",
+        pr3t: "サイト内で実行", pr3d: "外部ではなく、サイトの中で動く。",
+        mock_input: "何でも聞いてください…", mock_c1: "英語に切り替え", mock_c2: "3月の売上を表示",
+        l_how: "仕組み", how_t: "プロンプトからアクションへ",
+        h1t: "ユーザーが尋ねる", h1d: "自然な言葉のプロンプト。",
+        h2t: "AIが意図を推定", h2d: "許可されたアクションに対応付け。",
+        h3t: "サイトが検証・実行", h3d: "結果はその場に表示。",
+        how_note: "ユーザーを常にサイト内にとどめる、途切れないフロー。",
+        l_quality: "品質と管理", quality_t: "実行のたびに保護",
+        q1t: "定義済みアクション", q1d: "許可されたものだけが実行される。",
+        q2t: "エラー処理", q2d: "不正な入力も適切に処理。",
+        q3t: "一貫したフォーマット", q3d: "どのデバイスでもUIが崩れない。",
+        l_traction: "実績", traction_t: "価値を証明する",
+        tr1t: "クリック数削減", tr1d: "プロンプトからアクションへ直行。",
+        tr2t: "テレメトリー", tr2d: "どのプロンプトが成果につながるか。",
+        bar1: "アクションまでのクリック", bar2: "アシスト付きコンバージョン", bar3: "手動サポートの負荷",
+        l_start: "次のステップ", start_t: "今日インストールして試す",
+        s1t: "組み込む", s1d: "スクリプト + プロンプトパネル。",
+        s2t: "決める", s2d: "最初のアクション3つと指標。",
+        s3t: "公開する", s3d: "ターゲットにデモし、実際の反応を集める。",
         try: "このページで動いています。サイトを英語に切り替えるよう頼んでみてください。"
       },
       ko: {
-        badge: "스크립트 하나로 완전한 AI.",
-        title: "당신의 사이트에 두뇌를.",
-        subtitle: "한 줄만 붙여넣으세요. 사이트와 데이터를 이해하고 행동할 수 있는 AI 어시스턴트가 생깁니다.",
-        f1t: "답변", f1d: "사이트를 알고 있어요. 무엇이든 물어보세요.",
-        f2t: "데이터", f2d: '"3월 매출 보여줘" → 완료.',
-        f3t: "액션", f3d: "이동, 페이지 생성, 설정 변경.",
+        badge: "스크립트 하나, 진짜 액션.",
+        title: "AI 액션이 있는 사이트",
+        subtitle: "웹과 대화하고 실제 액션을 실행하세요. '묻기'에서 '하기'로.",
+        l_problem: "문제", problem_t: "AI는 수다만 떤다",
+        p1t: "실제 액션 없음", p1d: "채팅은 사이트를 바꾸지 못합니다.",
+        p2t: "뻔한 답변", p2d: "내부 데이터에 접근할 수 없습니다.",
+        p3t: "막힌 사용자", p3d: "다음 단계를 기다리기만 합니다.",
+        l_cost: "비용", cost_t: "행동하지 않는 대가",
+        c1t: "이탈", c1d: "행동 없이 떠납니다.",
+        c2t: "전환율", c2d: "도움 없이는 하락합니다.",
+        c3t: "수동 지원", c3d: "비싸고 반복적입니다.",
+        cost_note: "결과 없는 모든 상호작용은 놓친 기회입니다.",
+        l_market: "시장", market_t: "성장하는 B2C·B2B 어시스턴트",
+        m1t: "전환율 상승", m1d: "여정의 단계는 더 적게.",
+        m2t: "커지는 수요", m2d: "웹사이트의 생성형 AI 도입 확산.",
+        m3t: "측정 가능한 액션", m3d: "팀은 결과가 있는 상호작용을 원합니다.",
+        l_product: "제품", product_t: "스크립트 + 프롬프트 UI",
+        pr1t: "바로 쓰는 패널", pr1d: "프롬프트를 입력해 플로우를 실행.",
+        pr2t: "답변 + 액션", pr2d: "같은 여정 안에서.",
+        pr3t: "사이트 내 실행", pr3d: "밖이 아닌 사이트 안에서 동작.",
+        mock_input: "무엇이든 물어보세요…", mock_c1: "영어로 전환", mock_c2: "3월 매출 보기",
+        l_how: "작동 방식", how_t: "프롬프트에서 액션으로",
+        h1t: "사용자가 묻고", h1d: "일상 언어로 된 프롬프트.",
+        h2t: "AI가 의도를 파악", h2d: "허용된 액션에 매핑합니다.",
+        h3t: "사이트가 검증·실행", h3d: "결과가 그 자리에 나타납니다.",
+        how_note: "사용자를 항상 사이트 안에 머물게 하는 끊김 없는 플로우.",
+        l_quality: "품질과 제어", quality_t: "모든 실행에 보호 장치",
+        q1t: "매핑된 액션", q1d: "허용된 것만 실행됩니다.",
+        q2t: "오류 처리", q2d: "잘못된 입력도 안전하게 처리.",
+        q3t: "일관된 형식", q3d: "어떤 기기에서도 UI가 깨지지 않습니다.",
+        l_traction: "성과", traction_t: "가치를 증명하세요",
+        tr1t: "클릭 감소", tr1d: "프롬프트에서 액션까지 바로.",
+        tr2t: "텔레메트리", tr2d: "어떤 프롬프트가 전환되는지.",
+        bar1: "액션까지의 클릭 수", bar2: "어시스트 전환", bar3: "수동 지원 부담",
+        l_start: "다음 단계", start_t: "오늘 설치하고 사용해 보세요",
+        s1t: "연동", s1d: "스크립트 + 프롬프트 패널.",
+        s2t: "정의", s2d: "초기 액션 3개와 지표.",
+        s3t: "출시", s3d: "타깃에게 데모하고 실제 피드백 수집.",
         try: "이 페이지에서 작동 중입니다. 사이트를 영어로 바꿔 달라고 해보세요."
       },
       ar: {
-        badge: "سكربت واحد. ذكاء اصطناعي كامل.",
-        title: "موقعك، الآن بعقل.",
-        subtitle: "الصق سطرًا واحدًا. احصل على مساعد ذكي يعرف موقعك وبياناتك ويستطيع التصرف.",
-        f1t: "إجابات", f1d: "يعرف موقعك. اسأل أي شيء.",
-        f2t: "بيانات", f2d: "«اعرض مبيعات مارس» → تم.",
-        f3t: "إجراءات", f3d: "يتنقل، ينشئ صفحات، يغيّر الإعدادات.",
+        badge: "سكربت واحد. إجراءات حقيقية.",
+        title: "موقعك مع إجراءات الذكاء الاصطناعي",
+        subtitle: "تحدّث مع الويب ونفّذ إجراءات حقيقية. من «اسأل» إلى «افعل».",
+        l_problem: "المشكلة", problem_t: "الذكاء الاصطناعي يدردش فقط",
+        p1t: "لا إجراء حقيقي", p1d: "دردشة لا تغيّر موقعك.",
+        p2t: "إجابات عامة", p2d: "بلا وصول إلى البيانات الداخلية.",
+        p3t: "مستخدمون عالقون", p3d: "ينتظرون الخطوة التالية.",
+        l_cost: "التكلفة", cost_t: "ثمن عدم التحرّك",
+        c1t: "مغادرة", c1d: "يغادر المستخدمون دون فعل.",
+        c2t: "التحويل", c2d: "ينخفض دون مساعدة.",
+        c3t: "دعم يدوي", c3d: "مكلف ومتكرر.",
+        cost_note: "كل تفاعل بلا نتيجة فرصة ضائعة.",
+        l_market: "السوق", market_t: "مساعدو B2C وB2B في صعود",
+        m1t: "تحويل أعلى", m1d: "بخطوات أقل في الرحلة.",
+        m2t: "طلب متزايد", m2d: "تبنّي الذكاء الاصطناعي التوليدي في المواقع.",
+        m3t: "إجراء قابل للقياس", m3d: "الفرق تريد تفاعلات ذات نتيجة.",
+        l_product: "المنتج", product_t: "سكربت + واجهة أوامر",
+        pr1t: "لوحة جاهزة", pr1d: "اكتب أمرًا وأطلق تدفقًا.",
+        pr2t: "إجابة + إجراء", pr2d: "في الرحلة نفسها.",
+        pr3t: "تنفيذ داخلي", pr3d: "يعمل داخل موقعك، لا خارجه.",
+        mock_input: "اسألني أي شيء…", mock_c1: "التحويل إلى الإنجليزية", mock_c2: "اعرض مبيعات مارس",
+        l_how: "كيف يعمل", how_t: "من الأمر إلى الإجراء",
+        h1t: "المستخدم يسأل", h1d: "أمر بلغة طبيعية.",
+        h2t: "الذكاء يستنتج النية", h2d: "يطابقها مع إجراء مسموح.",
+        h3t: "الموقع يتحقق وينفّذ", h3d: "تظهر النتيجة في مكانها.",
+        how_note: "تدفق متواصل يبقي المستخدم داخل موقعك في كل لحظة.",
+        l_quality: "الجودة والتحكم", quality_t: "حماية في كل تنفيذ",
+        q1t: "إجراءات محددة", q1d: "لا يُنفَّذ إلا المسموح.",
+        q2t: "معالجة الأخطاء", q2d: "المدخلات غير الصالحة تُدار.",
+        q3t: "تنسيق متسق", q3d: "بلا أعطال واجهة على أي جهاز.",
+        l_traction: "النتائج", traction_t: "أثبت القيمة",
+        tr1t: "نقرات أقل", tr1d: "من الأمر إلى الإجراء.",
+        tr2t: "قياس عن بُعد", tr2d: "أي الأوامر تحقق تحويلًا.",
+        bar1: "نقرات حتى الإجراء", bar2: "تحويل مُساعد", bar3: "عبء الدعم اليدوي",
+        l_start: "الخطوات التالية", start_t: "ثبّت وجرّب اليوم",
+        s1t: "ادمج", s1d: "سكربت + لوحة أوامر.",
+        s2t: "حدّد", s2d: "3 إجراءات أولية ومقاييس.",
+        s3t: "أطلق", s3d: "عرض تجريبي لجمهورك مع ملاحظات حقيقية.",
         try: "إنه يعمل على هذه الصفحة. اطلب منه تحويل الموقع إلى الإنجليزية."
       },
       hi: {
-        badge: "एक स्क्रिप्ट। पूरा AI।",
-        title: "आपकी साइट, अब दिमाग़ के साथ।",
-        subtitle: "एक लाइन पेस्ट करें। एक AI असिस्टेंट पाएं जो आपकी साइट और डेटा को जानता है — और काम कर सकता है।",
-        f1t: "जवाब", f1d: "आपकी साइट को जानता है। कुछ भी पूछें।",
-        f2t: "डेटा", f2d: '"मार्च की बिक्री दिखाओ" → हो गया।',
-        f3t: "एक्शन", f3d: "नेविगेट करता है, पेज बनाता है, सेटिंग्स बदलता है।",
+        badge: "एक स्क्रिप्ट। असली एक्शन।",
+        title: "आपकी साइट, AI एक्शन के साथ",
+        subtitle: "वेब से बात करें और असली एक्शन चलाएँ। “पूछने” से “करने” तक।",
+        l_problem: "समस्या", problem_t: "AI सिर्फ़ बातें करता है",
+        p1t: "कोई असली एक्शन नहीं", p1d: "चैट से आपकी साइट नहीं बदलती।",
+        p2t: "आम जवाब", p2d: "अंदरूनी डेटा तक पहुँच नहीं।",
+        p3t: "अटके हुए यूज़र", p3d: "अगले कदम का इंतज़ार करते हैं।",
+        l_cost: "क़ीमत", cost_t: "कुछ न करने की क़ीमत",
+        c1t: "छोड़ जाना", c1d: "यूज़र बिना एक्शन के चले जाते हैं।",
+        c2t: "कन्वर्ज़न", c2d: "मदद के बिना गिरता है।",
+        c3t: "मैनुअल सपोर्ट", c3d: "महंगा और दोहराव भरा।",
+        cost_note: "बिना नतीजे की हर बातचीत एक खोया हुआ मौक़ा है।",
+        l_market: "बाज़ार", market_t: "B2C और B2B असिस्टेंट का उभार",
+        m1t: "ज़्यादा कन्वर्ज़न", m1d: "सफ़र में कम कदमों के साथ।",
+        m2t: "बढ़ती माँग", m2d: "वेबसाइटों पर जनरेटिव AI अपनाया जा रहा है।",
+        m3t: "मापने लायक़ एक्शन", m3d: "टीमें नतीजे वाली बातचीत चाहती हैं।",
+        l_product: "प्रोडक्ट", product_t: "स्क्रिप्ट + प्रॉम्प्ट UI",
+        pr1t: "तैयार पैनल", pr1d: "प्रॉम्प्ट लिखें, फ़्लो चलाएँ।",
+        pr2t: "जवाब + एक्शन", pr2d: "उसी सफ़र में।",
+        pr3t: "साइट के अंदर एक्ज़िक्यूशन", pr3d: "बाहर नहीं, आपकी साइट के भीतर काम करता है।",
+        mock_input: "कुछ भी पूछें…", mock_c1: "अंग्रेज़ी में बदलें", mock_c2: "मार्च की बिक्री दिखाओ",
+        l_how: "कैसे काम करता है", how_t: "प्रॉम्प्ट से एक्शन तक",
+        h1t: "यूज़र पूछता है", h1d: "सादी भाषा में एक प्रॉम्प्ट।",
+        h2t: "AI इरादा समझता है", h2d: "उसे अनुमति प्राप्त एक्शन से जोड़ता है।",
+        h3t: "साइट जाँचती और चलाती है", h3d: "नतीजा वहीं दिखता है।",
+        how_note: "एक लगातार चलता फ़्लो जो यूज़र को हमेशा आपकी साइट पर रखता है।",
+        l_quality: "गुणवत्ता और नियंत्रण", quality_t: "हर एक्ज़िक्यूशन पर सुरक्षा",
+        q1t: "तय एक्शन", q1d: "सिर्फ़ अनुमति वाला ही चलता है।",
+        q2t: "एरर हैंडलिंग", q2d: "ग़लत इनपुट सँभाल लिया जाता है।",
+        q3t: "एक जैसा फ़ॉर्मैट", q3d: "किसी भी डिवाइस पर UI नहीं टूटता।",
+        l_traction: "नतीजे", traction_t: "क़ीमत साबित करें",
+        tr1t: "कम क्लिक", tr1d: "प्रॉम्प्ट से सीधे एक्शन तक।",
+        tr2t: "टेलीमेट्री", tr2d: "कौन से प्रॉम्प्ट कन्वर्ट करते हैं।",
+        bar1: "एक्शन तक क्लिक", bar2: "असिस्टेड कन्वर्ज़न", bar3: "मैनुअल सपोर्ट का बोझ",
+        l_start: "अगले कदम", start_t: "आज ही इंस्टॉल करें और आज़माएँ",
+        s1t: "जोड़ें", s1d: "स्क्रिप्ट + प्रॉम्प्ट पैनल।",
+        s2t: "तय करें", s2d: "3 शुरुआती एक्शन और मेट्रिक्स।",
+        s3t: "लॉन्च करें", s3d: "अपने दर्शकों को डेमो दें, असली फ़ीडबैक लें।",
         try: "यह इसी पेज पर चालू है। इससे साइट अंग्रेज़ी में बदलने को कहें।"
       },
       tr: {
-        badge: "Tek satır. Tam yapay zekâ.",
-        title: "Siteniz, artık beyinli.",
-        subtitle: "Tek satır yapıştırın. Sitenizi ve verilerinizi bilen, harekete geçebilen bir AI asistanı edinin.",
-        f1t: "Cevaplar", f1d: "Sitenizi bilir. İstediğinizi sorun.",
-        f2t: "Veri", f2d: '"Mart satışlarını göster" → tamam.',
-        f3t: "Eylemler", f3d: "Gezinir, sayfa oluşturur, ayarları değiştirir.",
+        badge: "Tek satır. Gerçek eylemler.",
+        title: "Siteniz, yapay zekâ eylemleriyle",
+        subtitle: "Web ile konuşun ve gerçek eylemler çalıştırın. “Sormak”tan “yapmak”a.",
+        l_problem: "Sorun", problem_t: "Yapay zekâ sadece sohbet ediyor",
+        p1t: "Gerçek eylem yok", p1d: "Sohbet sitenizi değiştirmiyor.",
+        p2t: "Genel cevaplar", p2d: "İç verilere erişim yok.",
+        p3t: "Takılan kullanıcılar", p3d: "Bir sonraki adımı bekliyorlar.",
+        l_cost: "Bedel", cost_t: "Harekete geçmemenin bedeli",
+        c1t: "Terk", c1d: "Kullanıcılar eylem yapmadan gidiyor.",
+        c2t: "Dönüşüm", c2d: "Destek olmadan düşüyor.",
+        c3t: "Manuel destek", c3d: "Pahalı ve tekrarlı.",
+        cost_note: "Sonuçsuz her etkileşim kaçırılmış bir fırsattır.",
+        l_market: "Pazar", market_t: "B2C ve B2B asistanlar yükselişte",
+        m1t: "Daha çok dönüşüm", m1d: "Yolculukta daha az adımla.",
+        m2t: "Artan talep", m2d: "Sitelerde üretken yapay zekâ yaygınlaşıyor.",
+        m3t: "Ölçülebilir eylem", m3d: "Ekipler sonuç getiren etkileşim istiyor.",
+        l_product: "Ürün", product_t: "Script + Prompt arayüzü",
+        pr1t: "Hazır panel", pr1d: "Bir prompt yazın, akışı tetikleyin.",
+        pr2t: "Cevap + eylem", pr2d: "Aynı yolculukta.",
+        pr3t: "Site içinde çalışır", pr3d: "Dışarıda değil, sitenizin içinde.",
+        mock_input: "Bana her şeyi sorabilirsiniz…", mock_c1: "İngilizceye geç", mock_c2: "Mart satışlarını göster",
+        l_how: "Nasıl çalışır", how_t: "Prompttan eyleme",
+        h1t: "Kullanıcı sorar", h1d: "Doğal dilde bir prompt.",
+        h2t: "Yapay zekâ niyeti çıkarır", h2d: "İzinli bir eylemle eşleştirir.",
+        h3t: "Site doğrular ve çalıştırır", h3d: "Sonuç anında görünür.",
+        how_note: "Kullanıcıyı her an sitenizde tutan kesintisiz bir akış.",
+        l_quality: "Kalite ve kontrol", quality_t: "Her çalıştırmada koruma",
+        q1t: "Tanımlı eylemler", q1d: "Sadece izin verilen çalışır.",
+        q2t: "Hata yönetimi", q2d: "Geçersiz girdiler yönetilir.",
+        q3t: "Tutarlı format", q3d: "Hiçbir cihazda arayüz bozulmaz.",
+        l_traction: "Sonuçlar", traction_t: "Değeri kanıtlayın",
+        tr1t: "Daha az tıklama", tr1d: "Prompttan eyleme.",
+        tr2t: "Telemetri", tr2d: "Hangi promptlar dönüşüm getiriyor.",
+        bar1: "Eyleme kadar tıklama", bar2: "Destekli dönüşüm", bar3: "Manuel destek yükü",
+        l_start: "Sonraki adımlar", start_t: "Bugün kurun ve deneyin",
+        s1t: "Entegre edin", s1d: "Script + prompt paneli.",
+        s2t: "Tanımlayın", s2d: "3 başlangıç eylemi ve metrikler.",
+        s3t: "Yayınlayın", s3d: "Hedef kitlenize demo, gerçek geri bildirim.",
         try: "Bu sayfada canlı. Siteyi İngilizceye çevirmesini isteyin."
       },
       pl: {
-        badge: "Jeden skrypt. Pełne AI.",
-        title: "Twoja strona, teraz z mózgiem.",
-        subtitle: "Wklej jedną linię. Zyskaj asystenta AI, który zna twoją stronę i dane — i potrafi działać.",
-        f1t: "Odpowiedzi", f1d: "Zna twoją stronę. Pytaj o wszystko.",
-        f2t: "Dane", f2d: '"Pokaż sprzedaż z marca" → gotowe.',
-        f3t: "Akcje", f3d: "Nawiguje, generuje strony, zmienia ustawienia.",
+        badge: "Jeden skrypt. Prawdziwe akcje.",
+        title: "Twoja strona z akcjami AI",
+        subtitle: "Rozmawiaj ze stroną i wykonuj prawdziwe akcje. Od „zapytać” do „zrobić”.",
+        l_problem: "Problem", problem_t: "AI tylko gada",
+        p1t: "Brak prawdziwej akcji", p1d: "Czat nie zmienia twojej strony.",
+        p2t: "Ogólnikowe odpowiedzi", p2d: "Bez dostępu do danych wewnętrznych.",
+        p3t: "Zablokowani użytkownicy", p3d: "Czekają na następny krok.",
+        l_cost: "Koszt", cost_t: "Cena bezczynności",
+        c1t: "Porzucenie", c1d: "Użytkownicy odchodzą bez działania.",
+        c2t: "Konwersja", c2d: "Spada bez wsparcia.",
+        c3t: "Ręczny support", c3d: "Drogi i powtarzalny.",
+        cost_note: "Każda interakcja bez rezultatu to stracona szansa.",
+        l_market: "Rynek", market_t: "Asystenci B2C i B2B rosną w siłę",
+        m1t: "Wyższa konwersja", m1d: "Mniej kroków na ścieżce.",
+        m2t: "Rosnący popyt", m2d: "Generatywna AI wchodzi na strony www.",
+        m3t: "Mierzalna akcja", m3d: "Zespoły chcą interakcji z rezultatem.",
+        l_product: "Produkt", product_t: "Skrypt + panel promptów",
+        pr1t: "Gotowy panel", pr1d: "Wpisz prompt, uruchom przepływ.",
+        pr2t: "Odpowiedź + akcja", pr2d: "W tej samej ścieżce.",
+        pr3t: "Wykonanie wewnątrz", pr3d: "Działa w twojej stronie, nie poza nią.",
+        mock_input: "Zapytaj o cokolwiek…", mock_c1: "Przełącz na angielski", mock_c2: "Pokaż sprzedaż z marca",
+        l_how: "Jak to działa", how_t: "Od promptu do akcji",
+        h1t: "Użytkownik pyta", h1d: "Prompt zwykłym językiem.",
+        h2t: "AI odczytuje intencję", h2d: "Dopasowuje ją do dozwolonej akcji.",
+        h3t: "Strona weryfikuje i wykonuje", h3d: "Rezultat pojawia się od razu.",
+        how_note: "Ciągły przepływ, który cały czas trzyma użytkownika na twojej stronie.",
+        l_quality: "Jakość i kontrola", quality_t: "Ochrona przy każdym wykonaniu",
+        q1t: "Zmapowane akcje", q1d: "Wykonuje się tylko to, co dozwolone.",
+        q2t: "Obsługa błędów", q2d: "Nieprawidłowe dane są obsłużone.",
+        q3t: "Spójny format", q3d: "Bez awarii UI na żadnym urządzeniu.",
+        l_traction: "Wyniki", traction_t: "Udowodnij wartość",
+        tr1t: "Mniej kliknięć", tr1d: "Od promptu do akcji.",
+        tr2t: "Telemetria", tr2d: "Które prompty konwertują.",
+        bar1: "Kliknięcia do akcji", bar2: "Konwersja wspierana", bar3: "Obciążenie supportu",
+        l_start: "Następne kroki", start_t: "Zainstaluj i wypróbuj dziś",
+        s1t: "Zintegruj", s1d: "Skrypt + panel promptów.",
+        s2t: "Zdefiniuj", s2d: "3 pierwsze akcje i metryki.",
+        s3t: "Wystartuj", s3d: "Demo dla odbiorców, prawdziwy feedback.",
         try: "Działa na tej stronie. Poproś o przełączenie na angielski."
       }
     };
@@ -218,6 +939,44 @@
         return true;
       }
     };
+  </script>
+
+  <script>
+    // Scroll-triggered reveals for each section, plus the traction bars growing
+    // to their target widths — same class-toggle pattern the widget uses, no
+    // custom CSS. Everything renders in its final state under reduced motion.
+    (function () {
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      const bars = document.querySelectorAll("[data-grow]");
+      if (reduceMotion) {
+        bars.forEach((bar) => { bar.classList.remove("w-0"); bar.classList.add(bar.dataset.grow); });
+      } else if ("IntersectionObserver" in window) {
+        const grow = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            grow.unobserve(entry.target);
+            entry.target.classList.remove("w-0");
+            entry.target.classList.add(entry.target.dataset.grow);
+          });
+        }, { threshold: 0.5 });
+        bars.forEach((bar) => grow.observe(bar));
+      } else {
+        bars.forEach((bar) => { bar.classList.remove("w-0"); bar.classList.add(bar.dataset.grow); });
+      }
+
+      if (reduceMotion || !("IntersectionObserver" in window)) return;
+      const sections = document.querySelectorAll("[data-reveal]");
+      sections.forEach((el) => el.classList.add("opacity-0", "translate-y-4", "transition-all", "duration-700", "ease-out"));
+      const reveal = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          reveal.unobserve(entry.target);
+          entry.target.classList.remove("opacity-0", "translate-y-4");
+        });
+      }, { threshold: 0.12 });
+      sections.forEach((el) => reveal.observe(el));
+    })();
   </script>
 
   <script>
